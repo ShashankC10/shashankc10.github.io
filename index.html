@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shashank Chandavarkar — Portfolio</title>
+  <meta name="description" content="Portfolio of Shashank Chandavarkar — projects in search, document intelligence, and backend systems." />
+
+  <style>
+    :root{
+      --bg: #0b0f19;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --line: rgba(255,255,255,.12);
+      --shadow: 0 18px 50px rgba(0,0,0,.40);
+      --radius: 20px;
+    }
+
+    /* Light mode (auto if OS is light) */
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg: #f6f7fb;
+        --panel: rgba(0,0,0,.05);
+        --panel2: rgba(0,0,0,.08);
+        --text: rgba(0,0,0,.90);
+        --muted: rgba(0,0,0,.64);
+        --line: rgba(0,0,0,.10);
+        --shadow: 0 18px 50px rgba(16,24,40,.12);
+      }
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 18% 10%, rgba(99,102,241,.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 15%, rgba(16,185,129,.22), transparent 60%),
+        radial-gradient(900px 500px at 50% 90%, rgba(236,72,153,.16), transparent 60%),
+        var(--bg);
+      line-height: 1.45;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ opacity: .92; }
+
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 40px 20px 64px; }
+    nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+    }
+    .brand{ display:flex; gap:10px; align-items:center; font-weight: 650; letter-spacing:.2px; }
+    .dot{ width:10px; height:10px; border-radius:99px; background: linear-gradient(135deg, #6366f1, #10b981); box-shadow: 0 0 0 6px rgba(99,102,241,.12); }
+    .navlinks{ display:flex; gap: 14px; color: var(--muted); font-weight: 520; }
+    .navlinks a{ padding: 8px 10px; border-radius: 999px; }
+    .navlinks a:hover{ background: var(--panel); color: var(--text); }
+
+    header{ margin-top: 26px; padding: 28px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
+    .hero{
+      display:grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: center;
+    }
+    @media (max-width: 860px){ .hero{ grid-template-columns: 1fr; } }
+
+    .kicker{
+      display:inline-flex; gap:10px; align-items:center;
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--muted); font-weight: 560; width: fit-content;
+    }
+    h1{ margin: 14px 0 10px; font-size: clamp(2.0rem, 3.4vw, 3.0rem); line-height: 1.08; }
+    .subtitle{ margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 60ch; }
+
+    .cta{ margin-top: 18px; display:flex; flex-wrap: wrap; gap: 10px; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      font-weight: 650;
+      gap: 10px;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(16,185,129,.90));
+      border: 0;
+      color: white;
+    }
+    .btn:hover{ transform: translateY(-1px); transition: .15s ease; }
+    .btn:active{ transform: translateY(0px); }
+
+    .sidecard{
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+    }
+    .sidecard h3{ margin: 0 0 6px; font-size: 1.05rem; }
+    .sidecard p{ margin: 0; color: var(--muted); }
+    .chips{ margin-top: 12px; display:flex; flex-wrap: wrap; gap: 8px; }
+    .chip{
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: .92rem;
+    }
+
+    section{ margin-top: 22px; padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
+    .section-title{ display:flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    h2{ margin: 0; font-size: 1.25rem; letter-spacing:.2px; }
+    .hint{ color: var(--muted); font-weight: 540; font-size: .95rem; }
+
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      transition: .18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.07);
+    }
+    .card h3{ margin: 0 0 8px; font-size: 1.1rem; }
+    .card p{ margin: 0 0 12px; color: var(--muted); }
+    .meta{ display:flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .pill{
+      font-size: .9rem;
+      font-weight: 650;
+      color: var(--muted);
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.08);
+    }
+
+    .actions{ display:flex; gap: 10px; flex-wrap: wrap; }
+    .smallbtn{
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .contact{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (max-width: 740px){ .contact{ grid-template-columns: 1fr; } }
+    .contact .cardlike{
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+    }
+    .contact .cardlike h3{ margin: 0 0 6px; }
+    .contact .cardlike a{ color: var(--text); font-weight: 700; }
+    footer{ margin-top: 22px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <nav>
+      <div class="brand"><span class="dot"></span> Shashank Chandavarkar</div>
+      <div class="navlinks">
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </nav>
+
+    <header>
+      <div class="hero">
+        <div>
+          <div class="kicker">Portfolio • GitHub Pages</div>
+          <h1>Building fast, reliable systems — with a focus on AI + backend.</h1>
+          <p class="subtitle">
+            I like turning messy real-world problems into clean, working products.
+            Here are a few projects spanning search, document intelligence, and task systems.
+          </p>
+
+          <div class="cta">
+            <a class="btn primary" href="mailto:shashank3087@gmail.com">Email me</a>
+            <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a class="btn" href="https://github.com/ShashankC10" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+        </div>
+
+        <div class="sidecard">
+          <h3>Quick snapshot</h3>
+          <p>What you’ll find on this page.</p>
+          <div class="chips">
+            <span class="chip">Hybrid Search</span>
+            <span class="chip">LLMs</span>
+            <span class="chip">Python</span>
+            <span class="chip">Java / Spring</span>
+            <span class="chip">Docker</span>
+            <span class="chip">APIs</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="projects">
+      <div class="section-title">
+        <h2>Projects</h2>
+        <div class="hint">A few things I’ve built recently</div>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Clinical Trial Search Engine</h3>
+          <p>
+            Hybrid search engine for clinical trials combining keyword + dense retrieval + RRF,
+            with an AI-powered feasibility scorer for matching patient profiles quickly.
+          </p>
+          <div class="meta">
+            <span class="pill">BM25 + Dense</span>
+            <span class="pill">RRF</span>
+            <span class="pill">FastAPI</span>
+            <span class="pill">PostgreSQL</span>
+            <span class="pill">OpenSearch</span>
+          </div>
+          <div class="actions">
+            <a class="smallbtn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noreferrer">GitHub Repo</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Regulatory Document Classifier</h3>
+          <p>
+            Multi-modal compliance auditing system that classifies PDFs/images using text parsing,
+            image captioning, and LLM reasoning with explainable, citation-based outputs.
+          </p>
+          <div class="meta">
+            <span class="pill">Flask</span>
+            <span class="pill">LLMs</span>
+            <span class="pill">Multi-modal</span>
+            <span class="pill">Compliance</span>
+          </div>
+          <div class="actions">
+            <a class="smallbtn" href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noreferrer">GitHub Repo</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Task Management System</h3>
+          <p>
+            Spring Boot + Drools task system that enforces valid workflow state transitions
+            (PENDING → IN_PROGRESS → DONE, etc.) using business rules.
+          </p>
+          <div class="meta">
+            <span class="pill">Java 17+</span>
+            <span class="pill">Spring Boot</span>
+            <span class="pill">Drools</span>
+            <span class="pill">Rules Engine</span>
+          </div>
+          <div class="actions">
+            <a class="smallbtn" href="https://github.com/ShashankC10/task-management" target="_blank" rel="noreferrer">GitHub Repo</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-title">
+        <h2>Contact</h2>
+        <div class="hint">Let’s build something</div>
+      </div>
+
+      <div class="contact">
+        <div class="cardlike">
+          <h3>LinkedIn</h3>
+          <p><a href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noreferrer">linkedin.com/in/shashank-chandavarkar</a></p>
+          <p style="color:var(--muted); margin-top:8px;">Best for networking & opportunities.</p>
+        </div>
+
+        <div class="cardlike">
+          <h3>Email</h3>
+          <p><a href="mailto:shashank3087@gmail.com">shashank3087@gmail.com</a></p>
+          <p style="color:var(--muted); margin-top:8px;">Best for collaborations & project discussions.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="y"></span> Shashank Chandavarkar • Built with GitHub Pages
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
