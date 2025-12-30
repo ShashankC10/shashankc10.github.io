@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shashank Chandavarkar — Backend & Search Engineer</title>
-  <meta name="description" content="Shashank Chandavarkar | Backend, Search, Applied AI | Java, Python, Distributed Systems" />
+  <title>Shashank Chandavarkar Backend and Search Engineer</title>
+  <meta name="description" content="Backend Search and Applied AI Engineer building retrieval systems and production microservices" />
 
   <style>
     :root{
@@ -51,13 +51,6 @@
 
     .wrap{max-width:var(--max);margin:0 auto;padding:28px 20px 64px}
 
-    .skip{
-      position:absolute;left:-999px;top:8px;
-      padding:10px 12px;border-radius:999px;
-      background:var(--panel);border:1px solid var(--line);
-    }
-    .skip:focus{left:12px;outline:none;box-shadow:var(--focus)}
-
     nav{
       display:flex;
       justify-content:space-between;
@@ -69,14 +62,15 @@
       backdrop-filter:blur(10px);
       gap:10px;
     }
-    .brand{font-weight:800;letter-spacing:.2px}
+
+    .brand{font-weight:800}
     .navlinks{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .navlinks a{
-      padding:8px 10px;border-radius:999px;
+      padding:8px 10px;
+      border-radius:999px;
       color:var(--muted);
     }
     .navlinks a:hover{color:var(--text);background:rgba(255,255,255,.05)}
-    .navlinks a:focus-visible, button:focus-visible{outline:none;box-shadow:var(--focus)}
 
     .btn{
       padding:9px 12px;
@@ -105,7 +99,7 @@
       box-shadow:var(--shadow);
     }
 
-    h1{margin:0;font-size:clamp(2rem,3.2vw,3rem);letter-spacing:-.3px}
+    h1{margin:0;font-size:clamp(2rem,3.2vw,3rem)}
     h2{margin:0 0 12px;font-size:1.35rem}
     h3{margin:0 0 8px}
 
@@ -116,20 +110,13 @@
       font-size:1.02rem;
     }
 
-    .heroRow{
-      margin-top:14px;
+    .heroFacts{
       display:flex;
-      gap:14px;
+      gap:10px;
       flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
+      margin-top:12px;
     }
 
-    .cta{display:flex;gap:10px;flex-wrap:wrap}
-    .heroFacts{
-      display:flex;gap:10px;flex-wrap:wrap;
-      margin-top:10px;
-    }
     .fact{
       padding:8px 10px;
       border-radius:999px;
@@ -137,7 +124,6 @@
       background:var(--panel2);
       color:var(--muted);
       font-size:.9rem;
-      white-space:nowrap;
     }
 
     section{
@@ -149,372 +135,148 @@
       box-shadow:var(--shadow);
     }
 
-    .grid{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:14px;
-    }
-
-    .card{
-      padding:16px;
-      border-radius:var(--radius);
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.05);
-      transition:.2s ease;
-      min-height: 180px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-    }
-    .card:hover{transform:translateY(-3px)}
-    .cardActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-
-    .meta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin:10px 0 0;
-    }
-    .pill{
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      font-size:.85rem;
-      color:var(--muted);
-      background:rgba(255,255,255,.03);
-    }
-
-    .split{
-      display:grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap:14px;
-      align-items:start;
-    }
-    @media (max-width: 860px){
-      .split{grid-template-columns:1fr}
-    }
-
-    ul{margin:10px 0 0;padding-left:18px}
-    li{margin:6px 0;color:var(--muted)}
-    .kicker{color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem}
-
     .role{
       padding:14px;
       border:1px solid var(--line);
       background:rgba(255,255,255,.05);
       border-radius:var(--radius2);
+      margin-top:12px;
     }
+
     .roleTop{
-      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
       align-items:baseline;
     }
-    .roleTop strong{font-size:1rem}
-    .roleTop span{color:var(--muted);font-size:.95rem}
+
+    .roleTop span{color:var(--muted)}
+
+    ul{margin:10px 0 0;padding-left:18px}
+    li{margin:6px 0;color:var(--muted)}
 
     footer{
       margin-top:28px;
       text-align:center;
       color:var(--muted);
     }
-
-    /* Modal */
-    dialog{
-      width:min(780px, 92vw);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      background:var(--bg);
-      color:var(--text);
-      box-shadow:var(--shadow);
-      padding:0;
-    }
-    dialog::backdrop{background:rgba(0,0,0,.55)}
-    .modalHead{
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      background:var(--panel);
-      border-top-left-radius:var(--radius);
-      border-top-right-radius:var(--radius);
-    }
-    .modalBody{padding:16px 18px}
-    .x{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:999px;padding:8px 10px;cursor:pointer}
   </style>
 </head>
 
 <body>
-  <a class="skip" href="#main">Skip to content</a>
-
   <div class="wrap">
-    <nav aria-label="Primary">
+    <nav>
       <div class="brand">Shashank Chandavarkar</div>
       <div class="navlinks">
         <a href="#about">About</a>
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
         <a href="#contact">Contact</a>
-        <button id="themeToggle" class="btn" type="button" aria-label="Toggle theme">🌙</button>
+        <button id="themeToggle" class="btn">🌙</button>
       </div>
     </nav>
 
-    <main id="main">
-      <header>
-        <div class="kicker">Backend • Search • Applied AI</div>
-        <h1>Backend & Search Engineer building retrieval systems and production microservices.</h1>
+    <header>
+      <h1>Backend and Search Engineer building retrieval systems and production microservices.</h1>
+      <p class="subtitle">
+        3+ years shipping backend systems in Java and Python, microservices, search, and document intelligence
+        with measurable impact on latency, reliability, and customer experience.
+      </p>
+
+      <div class="heroFacts">
+        <div class="fact">Retrieval quality: <strong>MRR@10 0.48</strong> • <strong>Hit@10 70%</strong></div>
+        <div class="fact">Latency: <strong>&lt;2s</strong> queries</div>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
+        <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+      </div>
+    </header>
+
+    <section id="about">
+      <h2>About</h2>
+      <p>
+        I am a software engineer with over 3 years of experience building scalable backend systems and search driven
+        applications. I have worked extensively with Java and Python, cloud native microservices, and production
+        systems operating at scale.
+      </p>
+      <p>
+        My interests lie at the intersection of backend engineering, distributed systems, and applied AI,
+        particularly search, retrieval, and document intelligence. I am currently pursuing a Master of Science
+        in Computer Science at Texas A and M University.
+      </p>
+    </section>
+
+    <section id="experience">
+      <h2>Experience</h2>
+
+      <div class="role">
+        <div class="roleTop">
+          <strong>Software Development Engineer II and I Sixt Research and Development</strong>
+          <span>Jul 2022 to Aug 2025</span>
+        </div>
+        <ul>
+          <li>Owned the IoT lifecycle microservice powering activation and deactivation flows for <strong>300,000+ vehicles</strong>, serving as the system of record for IoT state and data.</li>
+          <li>Built a centralized airport parking vendor whitelist system, automating vehicle entry and eliminating manual workflows across <strong>30 percent of branches</strong>.</li>
+          <li>Implemented an automated vehicle return time approval system, reducing incorrect invoicing complaints by <strong>60 percent</strong>.</li>
+          <li>Designed and shipped an invoice summary pipeline that reduced invoice delivery time by <strong>6 hours</strong>, improving customer satisfaction by <strong>30 percent</strong>.</li>
+          <li>Improved check in and post processing pipelines, delivering a <strong>20 percent performance gain</strong> and increasing customer excitement score by <strong>15 percent</strong>.</li>
+          <li>Standardized service level configurations across <strong>12+ microservices</strong>, reducing maintenance overhead by <strong>30 percent</strong>.</li>
+          <li><strong>Promotion:</strong> Advanced to Software Development Engineer II from April 2025 to August 2025.</li>
+        </ul>
+      </div>
+
+      <div class="role">
+        <div class="roleTop">
+          <strong>Software Engineering Intern Sixt Research and Development</strong>
+          <span>Jan 2022 to Jun 2022</span>
+        </div>
+        <ul>
+          <li>Built a Python and Flask microservice to recommend relocation of free floating car sharing vehicles, improving fleet utilization by <strong>40 percent</strong>.</li>
+          <li>Reduced vehicle swap latency between Sixt Share and Rent fleets by <strong>20 percent</strong> using asynchronous activation and deactivation pipelines.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="projects">
+      <h2>Projects</h2>
+
+      <div class="role">
+        <strong>Clinical Trial Search Engine</strong>
         <p class="subtitle">
-          3+ years shipping backend systems in Java/Python—microservices, search, and document intelligence—
-          with measurable impact on latency, reliability, and customer experience.
+          Hybrid search system combining BM25 and dense semantic retrieval using Reciprocal Rank Fusion,
+          with an AI based feasibility scoring layer.
         </p>
-
-        <div class="heroFacts" aria-label="Highlights">
-          <div class="fact">Production scale: <strong>300k+ vehicles</strong></div>
-          <div class="fact">Search index: <strong>560k+ trials</strong></div>
-          <div class="fact">Retrieval quality: <strong>MRR@10 0.48</strong> • <strong>Hit@10 70%</strong></div>
-          <div class="fact">Latency: <strong>&lt;2s</strong> queries</div>
-        </div>
-
-        <div class="heroRow">
-          <div class="cta">
-            <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
-            <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
-            <a class="btn" href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub</a>
-            <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Resume</a>
-          </div>
-          <div class="cta">
-            <a class="btn" href="#projects">View work ↓</a>
-          </div>
-        </div>
-      </header>
-
-      <section id="about">
-        <h2>About</h2>
-        <div class="split">
-          <div>
-            <p>
-              I’m a software engineer with 3+ years of experience building scalable backend systems and
-              <strong>search-driven</strong> applications. I work across Java/Python and cloud-native services,
-              and I like problems where performance and correctness matter.
-            </p>
-            <p>
-              I’m especially interested in <strong>retrieval</strong> (keyword + dense), ranking, and document intelligence.
-              I’m currently pursuing a Master’s in Computer Science at Texas A&amp;M University.
-            </p>
-          </div>
-          <div>
-            <div class="role">
-              <div class="kicker">Core skills</div>
-              <div class="meta" style="margin-top:10px">
-                <span class="pill">Java</span><span class="pill">Go</span><span class="pill">Python</span>
-                <span class="pill">Spring Boot</span><span class="pill">FastAPI</span><span class="pill">Flask</span>
-                <span class="pill">OpenSearch</span><span class="pill">Elasticsearch</span><span class="pill">PostgreSQL</span>
-                <span class="pill">Kafka</span><span class="pill">Docker</span><span class="pill">Kubernetes</span>
-                <span class="pill">AWS</span><span class="pill">Observability</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="experience">
-        <h2>Experience</h2>
-
-        <div class="role" style="margin-top:12px">
-          <div class="roleTop">
-            <strong>Software Development Engineer II — Sixt R&amp;D</strong>
-            <span>Apr 2025 – Aug 2025</span>
-          </div>
-          <ul>
-            <li>
-              Led enhancements to core IoT backend services acting as the system of record for
-              <strong>300,000+ vehicles</strong>, with a focus on reliability, data integrity, and operational scalability.
-            </li>
-            <li>
-              Designed and shipped an invoice-summary pipeline that reduced invoice delivery time by
-              <strong>6 hours</strong>, improving customer satisfaction by <strong>30%</strong>.
-            </li>
-            <li>
-              Standardized service-level configurations across <strong>12+ microservices</strong>,
-              reducing maintenance overhead by <strong>30%</strong> and improving cross-team ownership clarity.
-            </li>
-          </ul>
-        </div>
-
-        <div class="role" style="margin-top:12px">
-          <div class="roleTop">
-            <strong>Software Development Engineer — Sixt R&amp;D</strong>
-            <span>Jul 2022 – Mar 2025</span>
-          </div>
-          <ul>
-            <li>
-              Owned the IoT lifecycle microservice powering activation/deactivation flows for
-              <strong>300,000+ vehicles</strong>, serving as the authoritative source for IoT state and data.
-            </li>
-            <li>
-              Built a centralized airport parking vendor whitelist system, automating vehicle entry
-              and eliminating manual workflows across <strong>30% of branches</strong>.
-            </li>
-            <li>
-              Implemented an automated vehicle return-time approval system, reducing incorrect
-              invoicing complaints by <strong>60%</strong>.
-            </li>
-            <li>
-              Improved check-in and post-processing pipelines, delivering a <strong>20% performance gain</strong>
-              and increasing customer excitement score by <strong>15%</strong>.
-            </li>
-          </ul>
-        </div>
-
-        <div class="role" style="margin-top:12px">
-          <div class="roleTop">
-            <strong>Software Engineering Intern — Sixt R&amp;D</strong>
-            <span>Jan 2022 – Jun 2022</span>
-          </div>
-          <ul>
-            <li>
-              Built a Python/Flask microservice to recommend relocation of free-floating car-sharing
-              vehicles, improving fleet utilization by <strong>40%</strong>.
-            </li>
-            <li>
-              Reduced vehicle swap latency between Sixt Share and Rent fleets by <strong>20%</strong>
-              using asynchronous activation/deactivation pipelines.
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section id="projects">
-        <h2>Projects</h2>
-
-        <div class="role" style="margin-top:12px">
-          <div class="kicker">Featured</div>
-          <h3 style="margin-top:8px">Clinical Trial Search Engine</h3>
-          <p class="subtitle" style="margin-top:6px">
-            Hybrid search over large-scale clinical trial data using BM25 + dense retrieval fused with Reciprocal Rank Fusion,
-            plus an AI-based feasibility scoring layer.
-          </p>
-          <div class="heroFacts">
-            <div class="fact"><strong>560k+ trials</strong> indexed</div>
-            <div class="fact"><strong>&lt;2s</strong> query latency</div>
-            <div class="fact"><strong>MRR@10 0.48</strong></div>
-            <div class="fact"><strong>Hit Rate@10 70%</strong></div>
-          </div>
-          <div class="meta" aria-label="Tech stack">
-            <span class="pill">OpenSearch (BM25)</span><span class="pill">PubMedBERT</span><span class="pill">RRF</span>
-            <span class="pill">FAISS</span><span class="pill">FastAPI</span><span class="pill">PostgreSQL</span>
-            <span class="pill">Docker Compose</span>
-          </div>
-          <div class="cardActions">
-            <a class="btn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener">GitHub</a>
-            <button class="btn" type="button" data-open="ctrial">Case study</button>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="card">
-            <div>
-              <h3>AI-Powered Regulatory Document Classifier</h3>
-              <p class="subtitle" style="margin-top:6px">
-                Multimodal AI system for regulatory compliance using text parsing, BLIP-based image captioning,
-                and LLM-driven reasoning with HITL feedback.
-              </p>
-              <div class="meta">
-                <span class="pill">Flask</span>
-                <span class="pill">BLIP</span>
-                <span class="pill">LLMs</span>
-                <span class="pill">HITL</span>
-              </div>
-            </div>
-            <div class="cardActions">
-              <a class="btn" href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noopener">GitHub</a>
-              <button class="btn" type="button" data-open="regdoc">Case study</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div>
-              <h3>Task Management System</h3>
-              <p class="subtitle" style="margin-top:6px">
-                Spring Boot task system with REST APIs, JPA persistence, and a rule-driven lifecycle with strict workflow validation.
-              </p>
-              <div class="meta">
-                <span class="pill">Java</span>
-                <span class="pill">Spring Boot</span>
-                <span class="pill">Drools</span>
-                <span class="pill">CI/CD</span>
-              </div>
-            </div>
-            <div class="cardActions">
-              <a class="btn" href="https://github.com/ShashankC10/task-management" target="_blank" rel="noopener">GitHub</a>
-              <button class="btn" type="button" data-open="task">Case study</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="contact">
-        <h2>Contact</h2>
-        <p class="subtitle">
-          Best way to reach me is email. I’m open to backend/search roles and applied AI work.
+        <ul>
+          <li>Indexed <strong>560,000+ clinical trials</strong> from ClinicalTrials.gov into PostgreSQL and OpenSearch.</li>
+          <li>Integrated FAISS based vector search with PubMedBERT embeddings to rerank top candidates.</li>
+          <li>Achieved <strong>sub 2 second query latency</strong> with strong retrieval quality on the TREC 2021 benchmark.</li>
+        </ul>
+        <p style="margin-top:8px">
+          <a class="btn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener">GitHub</a>
         </p>
-        <p style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
-          <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
-          <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Resume</a>
-        </p>
-      </section>
+      </div>
+    </section>
 
-      <footer>
-        © <span id="year"></span> Shashank Chandavarkar
-      </footer>
-    </main>
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>Email is the best way to reach me.</p>
+      <p>
+        <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
+        <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+    </section>
+
+    <footer>
+      © <span id="year"></span> Shashank Chandavarkar
+    </footer>
   </div>
 
-  <!-- Case study modals -->
-  <dialog id="modal-ctrial" aria-labelledby="ctrial-title">
-    <div class="modalHead">
-      <strong id="ctrial-title">Clinical Trial Search Engine — Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Problem:</strong> Find relevant trials quickly from large-scale, noisy eligibility criteria and free-text descriptions.</li>
-        <li><strong>Approach:</strong> BM25 (OpenSearch) + dense retrieval (PubMedBERT) fused via RRF; AI-based feasibility scoring with cached eligibility parsing.</li>
-        <li><strong>Scale:</strong> Ingestion pipeline scrapes/normalizes and indexes <strong>560k+ trials</strong> into PostgreSQL + OpenSearch; FAISS re-ranks top candidates.</li>
-        <li><strong>Results:</strong> <strong>&lt;2s</strong> query latency; strong retrieval quality on TREC 2021 Clinical Trials benchmark (<strong>MRR@10 0.48</strong>, <strong>Hit@10 70%</strong>).</li>
-      </ul>
-    </div>
-  </dialog>
-
-  <dialog id="modal-regdoc" aria-labelledby="regdoc-title">
-    <div class="modalHead">
-      <strong id="regdoc-title">AI-Powered Regulatory Document Classifier — Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Problem:</strong> Classify regulatory documents reliably across mixed formats (text + images) with explainability.</li>
-        <li><strong>Pipeline:</strong> Text parsing + BLIP image captioning + LLM-driven reasoning via API; dynamic prompt library for rule updates.</li>
-        <li><strong>Workflow:</strong> Human-in-the-Loop feedback integrated to improve classifications over time; containerized for deployment.</li>
-      </ul>
-    </div>
-  </dialog>
-
-  <dialog id="modal-task" aria-labelledby="task-title">
-    <div class="modalHead">
-      <strong id="task-title">Task Management System — Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Goal:</strong> Enforce workflow correctness with strict validation and predictable lifecycle transitions.</li>
-        <li><strong>Design:</strong> Spring Boot REST APIs + JPA persistence; rule-driven lifecycle with centralized validation.</li>
-        <li><strong>Delivery:</strong> CI/CD with GitHub Actions for tests and Docker image publishing.</li>
-      </ul>
-    </div>
-  </dialog>
-
   <script>
-    // Theme toggle
     const toggle = document.getElementById("themeToggle");
     const saved = localStorage.getItem("theme");
     if(saved === "light"){
@@ -528,35 +290,7 @@
       localStorage.setItem("theme", isLight ? "light" : "dark");
     });
 
-    // Year
     document.getElementById("year").textContent = new Date().getFullYear();
-
-    // Modal behavior
-    const openButtons = document.querySelectorAll("[data-open]");
-    const closeButtons = document.querySelectorAll("button[data-close]");
-
-    function openModal(key){
-      const el = document.getElementById(`modal-${key}`);
-      if(el && typeof el.showModal === "function") el.showModal();
-    }
-    function closeModal(btn){
-      const dlg = btn.closest("dialog");
-      if(dlg) dlg.close();
-    }
-
-    openButtons.forEach(btn => btn.addEventListener("click", () => openModal(btn.dataset.open)));
-    closeButtons.forEach(btn => btn.addEventListener("click", () => closeModal(btn)));
-
-    // Close modal on click outside content
-    document.querySelectorAll("dialog").forEach(dlg => {
-      dlg.addEventListener("click", (e) => {
-        const rect = dlg.getBoundingClientRect();
-        const inDialog = rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
-                         rect.left <= e.clientX && e.clientX <= rect.left + rect.width;
-        if(!inDialog) dlg.close();
-      });
-      dlg.addEventListener("cancel", (e) => { e.preventDefault(); dlg.close(); });
-    });
   </script>
 </body>
 </html>
