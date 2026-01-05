@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shashank Chandavarkar Backend Engineer</title>
-  <meta name="description" content="Shashank Chandavarkar | Backend, Applied AI,ML | Java, Go, Python, Distributed Systems" />
+  <meta name="description" content="Shashank Chandavarkar | Backend Engineer | Java, Go, Python, Distributed Systems" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -36,7 +39,7 @@
     html{scroll-behavior:smooth}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-family:"Manrope",system-ui,-apple-system,Segoe UI,Roboto,Arial;
       background:
         radial-gradient(900px 500px at 20% 10%, rgba(99,102,241,.35), transparent 60%),
         radial-gradient(900px 500px at 80% 15%, rgba(16,185,129,.25), transparent 60%),
@@ -137,7 +140,7 @@
       background:var(--panel2);
       color:var(--muted);
       font-size:.9rem;
-      white-space:nowrap;
+      white-space:normal;
     }
 
     section{
@@ -218,26 +221,6 @@
       color:var(--muted);
     }
 
-    dialog{
-      width:min(780px, 92vw);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      background:var(--bg);
-      color:var(--text);
-      box-shadow:var(--shadow);
-      padding:0;
-    }
-    dialog::backdrop{background:rgba(0,0,0,.55)}
-    .modalHead{
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      background:var(--panel);
-      border-top-left-radius:var(--radius);
-      border-top-right-radius:var(--radius);
-    }
-    .modalBody{padding:16px 18px}
-    .x{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:999px;padding:8px 10px;cursor:pointer}
   </style>
 </head>
 
@@ -252,16 +235,16 @@
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
         <a href="#contact">Contact</a>
-        <button id="themeToggle" class="btn" type="button" aria-label="Toggle theme">🌙</button>
+        <button id="themeToggle" class="btn" type="button" aria-label="Toggle theme">🌙 Theme</button>
       </div>
     </nav>
 
     <main id="main">
       <header>
-        <div class="kicker">BACKEND • DISTRIBUTED SYSTEMS • APPLIED AI AND ML</div>
-        <h1>Holistic Engineer building production-grade systems.</h1>
+        <div class="kicker">BACKEND • SEARCH • LOW LATENCY SYSTEMS</div>
+        <h1>Backend/Search engineer who ships measurable reliability and latency wins.</h1>
         <p class="subtitle">
-          3+ years shipping backend systems in Java, Go, and Python, primarily in cloud native environments, with measurable impact on latency, reliability, and customer experience.
+          3+ years building Java/Go/Python services, Kafka pipelines, and search relevance features; cut p95 latency, stabilized on-call, and landed features that stuck with users.
         </p>
 
         <div class="heroRow">
@@ -269,11 +252,16 @@
             <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
             <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
             <a class="btn" href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub</a>
-            <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+            <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Download Resume</a>
           </div>
           <div class="cta">
             <a class="btn" href="#projects">View work ↓</a>
           </div>
+        </div>
+        <div class="heroFacts" style="margin-top:12px">
+          <div class="fact"><strong>Location:</strong> College Station, TX (CST) • Open to relo/remote</div>
+          <div class="fact"><strong>Focus:</strong> Backend, search relevance, applied AI</div>
+          <div class="fact"><strong>Work auth:</strong> US (Student, CPT/OPT)</div>
         </div>
       </header>
 
@@ -282,21 +270,20 @@
         <div class="split">
           <div>
             <p>
-              I’m a software engineer with 3+ years of experience building scalable backend systems using Java, Go, and Python, primarily in cloud native environments where performance, reliability, and correctness are critical.
+              Backend/search engineer who owns services end to end: Java/Go/Python services on Kubernetes, Kafka data flows, PostgreSQL at scale, and search experiences that balance BM25 with embeddings.
             </p>
             <p>
-              My interests lie in distributed systems and applied AI and ML, and I aim to be a holistic developer with an end to end understanding of system design, data flow, infrastructure, and long term maintainability. I am currently pursuing a Master of Science in Computer Science at Texas A and M University.
+              Recent wins: reduced vehicle activation latency, fixed invoice delivery lag, and shipped a clinical trial search that keeps sub-2s response times over 560k+ documents. MS CS @ Texas A&M.
             </p>
           </div>
           <div>
             <div class="role">
               <div class="kicker">Core skills</div>
               <div class="meta" style="margin-top:10px">
-                <span class="pill">Java</span><span class="pill">Go</span><span class="pill">Python</span>
-                <span class="pill">Spring Boot</span><span class="pill">FastAPI</span><span class="pill">Flask</span>
-                <span class="pill">OpenSearch</span><span class="pill">Elasticsearch</span><span class="pill">PostgreSQL</span>
-                <span class="pill">Kafka</span><span class="pill">Docker</span><span class="pill">Kubernetes</span>
-                <span class="pill">AWS</span><span class="pill">Observability</span>
+                <span class="pill">Languages: Java, Go, Python</span>
+                <span class="pill">Frameworks: Springboot, FastAPI/Flask</span>
+                <span class="pill">Infra: SQL, OpenSearch/Elasticsearch, Docker, Kubernetes, AWS</span>
+                <span class="pill">Reliability: tracing/logging, p95/p99 tuning, SLOs</span>
               </div>
             </div>
           </div>
@@ -308,17 +295,17 @@
 
         <div class="role" style="margin-top:12px">
           <div class="roleTop">
-            <strong>Software Development Engineer II and I, Sixt R and D</strong>
-            <span>Jul 2022 to Aug 2025</span>
+            <strong>Software Development Engineer, Sixt R and D</strong>
+            <span>Jul 2022 to Present</span>
           </div>
           <ul>
-            <li>Owned the IoT lifecycle microservice powering 300,000+ vehicles, enabling reliable activation and deactivation and serving as the system of record for IoT data.</li>
-            <li>Implemented a centralized whitelist solution for airport parking vendors, automating vehicle entry and reducing manual work across 30 percent of branches.</li>
-            <li>Built an automated vehicle return time approval system that reduced incorrect invoicing complaints by 60 percent.</li>
-            <li>Designed and deployed an invoice summary pipeline that decreased invoice delivery time by 6 hours, boosting customer satisfaction by 30 percent.</li>
-            <li>Improved check in workflows by adding a complaint capture feature and optimizing post processing pipelines for a 20 percent performance gain.</li>
-            <li>Standardized service level configurations across 12+ microservices, producing ownership maps and reference documentation adopted across teams and reducing maintenance overhead by 30 percent.</li>
-            <li><strong>Promotion:</strong> moved to Software Development Engineer II from Apr 2025 to Aug 2025.</li>
+            <li>Owned IoT lifecycle service for 300k+ vehicles; Kafka + Spring Boot with DRL parser (KIE) for Iot device activate/deactivate workflows across branches.</li>
+            <li>Automated airport vendor whitelisting across ~30% of locations; reducing manual work.</li>
+            <li>Shipped invoice summary that reduced invoice time by ~6 hours and dropped customer complaints ~15%.</li>
+            <li>Built automated return-time approval feature that cut incorrect invoicing by ~25% and reduced manual overrides.</li>
+            <li>Improved check-in workflow with complaint capture + post-processing optimizations, yielding ~20% faster processing.</li>
+            <li>Standardized service configs across 12+ microservices; produced ownership maps and runbooks adopted org-wide, trimming maintenance overhead ~30%.</li>
+            <li>On-call for mobility services; added tracing/alerting that reduced false positives and improved MTTR for fleet incidents.</li>
           </ul>
         </div>
 
@@ -328,8 +315,8 @@
             <span>Jan 2022 to Jun 2022</span>
           </div>
           <ul>
-            <li>Built a Python and Flask microservice to recommend relocating free floating car sharing vehicles, improving fleet utilization by 40 percent.</li>
-            <li>Reduced vehicle swap latency between Sixt Share and Rent fleets by 20 percent through asynchronous activation and deactivation pipelines.</li>
+            <li>Python/Flask microservice to recommend relocating free-floating vehicles; improved fleet utilization ~40% on pilot cohorts.</li>
+            <li>Asynchronous activation/deactivation pipeline that reduced swap latency between Share and Rent fleets by ~20%.</li>
           </ul>
         </div>
       </section>
@@ -344,20 +331,14 @@
             Hybrid search over large scale clinical trial data using BM25 + dense retrieval fused with Reciprocal Rank Fusion,
             plus an AI based feasibility scoring layer.
           </p>
-          <div class="heroFacts">
-            <div class="fact"><strong>560k+ trials</strong> indexed</div>
-            <div class="fact"><strong>&lt;2s</strong> query latency</div>
-            <div class="fact"><strong>MRR@10 0.48</strong></div>
-            <div class="fact"><strong>Hit Rate@10 70%</strong></div>
-          </div>
-          <div class="meta" aria-label="Tech stack">
-            <span class="pill">OpenSearch (BM25)</span><span class="pill">PubMedBERT</span><span class="pill">RRF</span>
-            <span class="pill">FAISS</span><span class="pill">FastAPI</span><span class="pill">PostgreSQL</span>
-            <span class="pill">Docker Compose</span>
-          </div>
+          <ul>
+            <li>Indexed 560k+ trials into PostgreSQL + OpenSearch; sustained &lt;2s latency with cache-first eligibility parsing.</li>
+            <li>BM25 + PubMedBERT dense retrieval fused via RRF; improved search quality on TREC 2021 (MRR@10 0.48, Hit@10 70%).</li>
+            <li>FastAPI + FAISS reranker; Docker Compose for reproducible local + demo deploys.</li>
+          </ul>
           <div class="cardActions">
             <a class="btn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener">GitHub</a>
-            <button class="btn" type="button" data-open="ctrial">Case study</button>
+            <a class="btn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine#readme" target="_blank" rel="noopener">Case study</a>
           </div>
         </div>
 
@@ -369,6 +350,10 @@
                 Multi modal AI system for regulatory compliance using text parsing, BLIP based image captioning,
                 and LLM driven reasoning with HITL feedback.
               </p>
+              <ul>
+                <li>Cut manual triage time by automating first-pass classifications with BLIP captions + LLM reasoning.</li>
+                <li>Prompt library + HITL loop let compliance team adjust rules without redeploys.</li>
+              </ul>
               <div class="meta">
                 <span class="pill">Flask</span>
                 <span class="pill">BLIP</span>
@@ -378,7 +363,7 @@
             </div>
             <div class="cardActions">
               <a class="btn" href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noopener">GitHub</a>
-              <button class="btn" type="button" data-open="regdoc">Case study</button>
+              <a class="btn" href="https://github.com/ShashankC10/Regulatory-document-classifier#readme" target="_blank" rel="noopener">Case study</a>
             </div>
           </div>
 
@@ -388,6 +373,10 @@
               <p class="subtitle" style="margin-top:6px">
                 Spring Boot task system with REST APIs, JPA persistence, and a rule driven lifecycle with strict workflow validation.
               </p>
+              <ul>
+                <li>Enforced lifecycle correctness with Drools rules.</li>
+                <li>CI/CD with GitHub Actions; Docker image publishing for repeatable deploys.</li>
+              </ul>
               <div class="meta">
                 <span class="pill">Java</span>
                 <span class="pill">Spring Boot</span>
@@ -397,7 +386,7 @@
             </div>
             <div class="cardActions">
               <a class="btn" href="https://github.com/ShashankC10/task-management" target="_blank" rel="noopener">GitHub</a>
-              <button class="btn" type="button" data-open="task">Case study</button>
+              <a class="btn" href="https://github.com/ShashankC10/task-management#readme" target="_blank" rel="noopener">Case study</a>
             </div>
           </div>
         </div>
@@ -406,12 +395,12 @@
       <section id="contact">
         <h2>Contact</h2>
         <p class="subtitle">
-          Best way to reach me is email. I’m open to backend and search roles and applied AI work.
+          Based in College Station, TX (CST). Best way to reach me is email. Open to backend and applied AI roles.
         </p>
         <p style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn primary" href="mailto:shashank3087@gmail.com">Email</a>
           <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
-          <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+          <a class="btn" href="https://shashankc10.github.io/Shashank_Chandavarkar_Resume.pdf" target="_blank" rel="noopener">Download Resume</a>
         </p>
       </section>
 
@@ -421,91 +410,23 @@
     </main>
   </div>
 
-  <dialog id="modal-ctrial" aria-labelledby="ctrial-title">
-    <div class="modalHead">
-      <strong id="ctrial-title">Clinical Trial Search Engine Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Problem:</strong> Find relevant trials quickly from large scale, noisy eligibility criteria and free text descriptions.</li>
-        <li><strong>Approach:</strong> BM25 (OpenSearch) + dense retrieval (PubMedBERT) fused via RRF; AI based feasibility scoring with cached eligibility parsing.</li>
-        <li><strong>Scale:</strong> Ingestion pipeline scrapes and normalizes and indexes 560k+ trials into PostgreSQL + OpenSearch; FAISS reranks top candidates.</li>
-        <li><strong>Results:</strong> &lt;2s query latency; strong retrieval quality on TREC 2021 Clinical Trials benchmark (MRR@10 0.48, Hit@10 70%).</li>
-      </ul>
-    </div>
-  </dialog>
-
-  <dialog id="modal-regdoc" aria-labelledby="regdoc-title">
-    <div class="modalHead">
-      <strong id="regdoc-title">AI Powered Regulatory Document Classifier Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Problem:</strong> Classify regulatory documents reliably across mixed formats (text + images) with explainability.</li>
-        <li><strong>Pipeline:</strong> Text parsing + BLIP image captioning + LLM driven reasoning via API; dynamic prompt library for rule updates.</li>
-        <li><strong>Workflow:</strong> Human in the Loop feedback integrated to improve classifications over time; containerized for deployment.</li>
-      </ul>
-    </div>
-  </dialog>
-
-  <dialog id="modal-task" aria-labelledby="task-title">
-    <div class="modalHead">
-      <strong id="task-title">Task Management System Case study</strong>
-      <button class="x" type="button" data-close>✕</button>
-    </div>
-    <div class="modalBody">
-      <ul>
-        <li><strong>Goal:</strong> Enforce workflow correctness with strict validation and predictable lifecycle transitions.</li>
-        <li><strong>Design:</strong> Spring Boot REST APIs + JPA persistence; rule driven lifecycle with centralized validation.</li>
-        <li><strong>Delivery:</strong> CI/CD with GitHub Actions for tests and Docker image publishing.</li>
-      </ul>
-    </div>
-  </dialog>
-
   <script>
     const toggle = document.getElementById("themeToggle");
     const saved = localStorage.getItem("theme");
 
     if(saved === "light"){
       document.body.classList.add("light");
-      toggle.textContent = "🌞";
+      toggle.textContent = "🌞 Theme";
     }
 
     toggle.addEventListener("click", () => {
       document.body.classList.toggle("light");
       const isLight = document.body.classList.contains("light");
-      toggle.textContent = isLight ? "🌞" : "🌙";
+      toggle.textContent = isLight ? "🌞 Theme" : "🌙 Theme";
       localStorage.setItem("theme", isLight ? "light" : "dark");
     });
 
     document.getElementById("year").textContent = new Date().getFullYear();
-
-    const openButtons = document.querySelectorAll("[data-open]");
-    const closeButtons = document.querySelectorAll("button[data-close]");
-
-    function openModal(key){
-      const el = document.getElementById(`modal-${key}`);
-      if(el && typeof el.showModal === "function") el.showModal();
-    }
-    function closeModal(btn){
-      const dlg = btn.closest("dialog");
-      if(dlg) dlg.close();
-    }
-
-    openButtons.forEach(btn => btn.addEventListener("click", () => openModal(btn.dataset.open)));
-    closeButtons.forEach(btn => btn.addEventListener("click", () => closeModal(btn)));
-
-    document.querySelectorAll("dialog").forEach(dlg => {
-      dlg.addEventListener("click", (e) => {
-        const rect = dlg.getBoundingClientRect();
-        const inDialog = rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
-                         rect.left <= e.clientX && e.clientX <= rect.left + rect.width;
-        if(!inDialog) dlg.close();
-      });
-      dlg.addEventListener("cancel", (e) => { e.preventDefault(); dlg.close(); });
-    });
   </script>
 </body>
 </html>
