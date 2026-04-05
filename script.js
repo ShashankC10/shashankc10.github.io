@@ -1,15 +1,6 @@
-/* ── Cursor spotlight ── */
-document.addEventListener('mousemove', e => {
-  document.documentElement.style.setProperty('--cx', e.clientX + 'px');
-  document.documentElement.style.setProperty('--cy', e.clientY + 'px');
-});
-
-/* ── Scroll progress bar ── */
-const progress = document.getElementById('progress');
+/* ── Nav border on scroll ── */
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
-  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
-  progress.style.width = Math.min(pct, 100) + '%';
   nav.classList.toggle('scrolled', window.scrollY > 40);
 }, { passive: true });
 
@@ -43,7 +34,7 @@ const staggerObs = new IntersectionObserver(entries => {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
       Array.from(e.target.children).forEach((child, i) => {
-        child.style.transitionDelay = (i * 80) + 'ms';
+        child.style.transitionDelay = (i * 70) + 'ms';
       });
       staggerObs.unobserve(e.target);
     }
