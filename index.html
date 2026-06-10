@@ -5,340 +5,209 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shashank Chandavarkar | Backend Engineer</title>
   <meta name="description" content="Shashank Chandavarkar, backend engineer. Java, Go, and Python services, Kafka pipelines, and applied AI. MS CS at Texas A&M." />
-  <meta name="theme-color" content="#0b0e14" />
+  <meta name="theme-color" content="#ffffff" />
   <meta property="og:title" content="Shashank Chandavarkar | Backend Engineer" />
   <meta property="og:description" content="Backend systems that fail less, and explain why when they do. Java, Go, Python, Kafka, and applied AI." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://shashankc10.github.io/" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%235b9dff'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <a class="skip" href="#main">Skip to content</a>
-
-  <div class="bg-fx" aria-hidden="true"></div>
+  <a class="skip" href="#about">Skip to content</a>
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
 
-  <div class="wrap">
-    <nav id="nav" aria-label="Primary">
-      <div class="brand">Shashank Chandavarkar</div>
-      <div class="navlinks">
-        <a href="#about">About</a>
-        <a href="#education">Education</a>
-        <a href="#experience">Experience</a>
-        <a href="#projects">Projects</a>
-        <a href="#contact">Contact</a>
-        <button id="themeToggle" class="btn icon-btn" type="button" aria-label="Toggle theme">🌙</button>
+  <div class="shell">
+
+    <!-- ── Left rail ── -->
+    <aside>
+      <div>
+        <div class="kicker">Backend · Distributed Systems · Applied AI</div>
+        <h1>Shashank<br>Chandavarkar</h1>
+        <p class="tagline">Backend systems that <em>fail less</em>, and explain <em>why</em> when they do.</p>
+        <nav class="lnav" aria-label="Sections">
+          <a href="#about"><span class="n">01</span> About</a>
+          <a href="#experience"><span class="n">02</span> Experience</a>
+          <a href="#education"><span class="n">03</span> Education</a>
+          <a href="#projects"><span class="n">04</span> Projects</a>
+          <a href="#skills"><span class="n">05</span> Skills</a>
+          <a href="#contact"><span class="n">06</span> Contact</a>
+        </nav>
       </div>
-    </nav>
-
-    <main id="main">
-
-      <!-- ── Hero ── -->
-      <header class="fade-up">
-        <div class="status-badge"><span class="status-dot"></span>Open to backend &amp; applied AI roles</div>
-        <div class="kicker">Backend · Applied AI · Distributed Systems</div>
-        <h1>
-          Backend systems that fail less,<br>
-          <span class="grad">and explain why when they do.</span>
-        </h1>
-        <p class="subtitle">
-          Three years at Sixt building Java, Go, and Python services for a 300k-vehicle fleet.
-          Now at Texas A&amp;M, bringing that production experience to retrieval systems and LLM agents.
-        </p>
-
-        <div class="heroRow">
-          <div class="cta">
-            <a class="btn primary" href="mailto:shashank3087@gmail.com">✉&nbsp;Email</a>
-            <button class="btn" id="copyEmail" type="button" title="Copy email address">Copy email</button>
-            <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn ↗</a>
-            <a class="btn" href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub ↗</a>
-            <a class="btn" href="Shashank_Chandavarkar.pdf" target="_blank" rel="noopener">Resume ↓</a>
-          </div>
+      <div class="rail-bottom">
+        <div class="badge"><span class="dot"></span> OPEN TO BACKEND &amp; APPLIED AI ROLES</div>
+        <div class="socials">
+          <a href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="mailto:shashank3087@gmail.com">Email</a>
+          <a href="Shashank_Chandavarkar.pdf" target="_blank" rel="noopener">Resume ↓</a>
         </div>
+      </div>
+    </aside>
 
-        <div class="heroFacts">
-          <div class="fact">📍 College Station, TX (CST) · Open to relocation / remote</div>
-          <div class="fact">🎓 MS CS @ Texas A&amp;M · GPA 4.0</div>
-          <div class="fact">🛂 US Student · CPT / OPT eligible</div>
-        </div>
+    <!-- ── Content ── -->
+    <div class="content">
 
-        <div class="stats" data-stagger>
-          <div class="stat">
-            <div class="stat-num" data-count="3" data-suffix="+">3+</div>
-            <div class="stat-label">years running production services</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" data-count="300" data-suffix="k+">300k+</div>
-            <div class="stat-label">vehicles connected by my IoT service</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" data-count="100" data-suffix="k">100k</div>
-            <div class="stat-label">network calls eliminated per day</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" data-count="4.0" data-decimals="1">4.0</div>
-            <div class="stat-label">GPA · MS CS at Texas A&amp;M</div>
-          </div>
-        </div>
-
-        <a class="scroll-hint" href="#about" aria-label="Scroll to About">↓</a>
-      </header>
-
-      <!-- ── About ── -->
-      <section id="about" class="fade-up">
-        <h2>About</h2>
-        <p style="margin:0;max-width:80ch">
-          I spent three years at Sixt building and running services for a 300k-vehicle fleet:
-          Spring Boot and Go on Kubernetes, Kafka pipelines carrying vehicle telemetry, PostgreSQL
-          and Elasticsearch under real load, and the on-call rotation that teaches you what
-          observability is actually for.
-        </p>
-        <p style="margin-top:12px;max-width:80ch">
-          Now I'm at Texas A&amp;M for an MS in Computer Science, focused on distributed systems
-          and applied AI. The projects below are where those meet: hybrid search over half a million
-          clinical trials, and an agent that answers <em>"why is prod slow?"</em> with actual PromQL.
-        </p>
-
-        <div class="skill-grid" data-stagger>
-          <div class="skill-group" data-cat="lang">
-            <div class="sg-label lang">Languages</div>
-            <div class="sg-tags">
-              <span class="stag">Java</span><span class="stag">Go</span>
-              <span class="stag">Python</span><span class="stag">C++</span>
-              <span class="stag">TypeScript</span><span class="stag">JavaScript</span>
-            </div>
-          </div>
-          <div class="skill-group" data-cat="back">
-            <div class="sg-label back">Frameworks &amp; APIs</div>
-            <div class="sg-tags">
-              <span class="stag">Spring Boot</span><span class="stag">FastAPI</span>
-              <span class="stag">REST</span><span class="stag">gRPC</span>
-              <span class="stag">JPA / Hibernate</span><span class="stag">Flask</span>
-              <span class="stag">Angular</span>
-            </div>
-          </div>
-          <div class="skill-group" data-cat="db">
-            <div class="sg-label db">Databases &amp; Search</div>
-            <div class="sg-tags">
-              <span class="stag">PostgreSQL</span><span class="stag">MySQL</span>
-              <span class="stag">MongoDB</span><span class="stag">Redis</span>
-              <span class="stag">OpenSearch</span><span class="stag">Elasticsearch</span>
-            </div>
-          </div>
-          <div class="skill-group" data-cat="infra">
-            <div class="sg-label infra">Infrastructure</div>
-            <div class="sg-tags">
-              <span class="stag">AWS</span><span class="stag">Docker</span>
-              <span class="stag">Kubernetes</span><span class="stag">Kafka</span>
-              <span class="stag">Jenkins</span><span class="stag">Linux</span>
-            </div>
-          </div>
-          <div class="skill-group" data-cat="obs">
-            <div class="sg-label obs">Observability</div>
-            <div class="sg-tags">
-              <span class="stag">Prometheus</span><span class="stag">Grafana</span>
-              <span class="stag">Instana</span><span class="stag">Distributed Tracing</span>
-            </div>
-          </div>
-          <div class="skill-group" data-cat="ai">
-            <div class="sg-label ai">AI / LLM</div>
-            <div class="sg-tags">
-              <span class="stag">LangChain</span><span class="stag">LangGraph</span>
-              <span class="stag">RAG</span><span class="stag">ReAct Agents</span>
-              <span class="stag">FAISS</span><span class="stag">PyTorch</span>
-              <span class="stag">Ollama</span>
-            </div>
-          </div>
+      <section id="about" class="about fade-up">
+        <div class="sec-h"><span class="num">01</span><h2>About</h2></div>
+        <p>I spent three years at Sixt building and running services for a <em>300k-vehicle fleet</em>:
+          Spring Boot and Go on Kubernetes, Kafka pipelines carrying vehicle telemetry, PostgreSQL and
+          Elasticsearch under real load, and the on-call rotation that teaches you what observability
+          is actually for.</p>
+        <p>Now I'm at Texas A&amp;M for an MS in Computer Science, focused on distributed systems and
+          applied AI. The projects below are where those meet: hybrid search over half a million
+          clinical trials, and an agent that answers <em>"why is prod slow?"</em> with actual PromQL.</p>
+        <div class="stats">
+          <div class="stat"><b><span class="cnt" data-count="3">3</span><i>+</i></b><span>years running production services</span></div>
+          <div class="stat"><b><span class="cnt" data-count="300" data-suffix="k">300k</span><i>+</i></b><span>vehicles connected by my IoT service</span></div>
+          <div class="stat"><b><span class="cnt" data-count="100" data-suffix="k">100k</span></b><span>network calls eliminated per day</span></div>
+          <div class="stat"><b><span class="cnt" data-count="4.0" data-decimals="1">4.0</span></b><span>GPA · MS CS at Texas A&amp;M</span></div>
         </div>
       </section>
 
-      <!-- ── Education ── -->
-      <section id="education" class="fade-up">
-        <h2>Education</h2>
-        <div class="edu-grid" data-stagger>
-          <div class="edu-card">
-            <div class="edu-degree">Master of Science, Computer Science</div>
-            <div class="edu-school">Texas A&amp;M University · College Station, TX</div>
-            <div class="edu-meta">
-              <span>📅 Aug 2025 – May 2027</span>
-              <span>GPA <span class="gpa">4.0 / 4.0</span></span>
-            </div>
-          </div>
-          <div class="edu-card">
-            <div class="edu-degree">Bachelor of Engineering, Computer Science</div>
-            <div class="edu-school">JSS Science and Technology University · Mysore, India</div>
-            <div class="edu-meta">
-              <span>📅 Aug 2018 – Jul 2022</span>
-              <span>GPA <span class="gpa">3.8 / 4.0</span></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Experience ── -->
       <section id="experience" class="fade-up">
-        <h2>Experience</h2>
-
-        <div class="timeline">
-        <div class="role">
-          <div class="roleTop">
-            <strong>Software Development Engineer · Sixt Rent a Car</strong>
-            <span class="date">Jul 2022 – Jun 2025</span>
+        <div class="sec-h"><span class="num">02</span><h2>Experience</h2></div>
+        <div class="xp">
+          <div class="when">JUL 2022 – JUN 2025</div>
+          <div>
+            <h3>Software Development Engineer, <span class="co">Sixt</span></h3>
+            <ul>
+              <li>Owned the IoT lifecycle service behind <b>300k+ vehicles</b>, a Kafka-driven Spring Boot pipeline with KIE/DRL rule evaluation for device activate/deactivate workflows.</li>
+              <li>Migrated vehicle search from a Go-based wrapper to a <b>native Java Spring Boot service</b>, eliminating an extra network hop and cutting <b>100k network calls/day</b>.</li>
+              <li>Migrated operations app endpoints from REST to <b>gRPC</b>, using binary serialization and HTTP/2 for a <b>~15% latency reduction</b>.</li>
+              <li>Built a <b>Go-based vehicle search service</b> ingesting real-time Share fleet events (location, fuel, mileage) into an Elasticsearch index for low-latency querying.</li>
+              <li>Fed the <b>FleetOps dashboard</b> real-time vehicle positioning and status data so operations teams could monitor fleet health and create service orders across active markets.</li>
+              <li>Automated airport vendor whitelisting across <b>~30% of locations</b>, replacing a fully manual entry process.</li>
+              <li>Built return-time approval feature that cut <b>incorrect invoicing by 25%</b> and reduced manual overrides.</li>
+              <li>Improved vehicle check-in workflows with complaint capture and post-processing optimizations, for <b>20% faster processing</b>.</li>
+              <li>Standardized service configs across <b>12+ microservices</b>; produced ownership maps and runbooks adopted org-wide, trimming maintenance overhead by <b>30%</b>.</li>
+              <li>On-call for mobility services; added distributed tracing and tuned alerting, cutting false positives and shortening recovery time for fleet incidents.</li>
+            </ul>
           </div>
-          <ul>
-            <li>Owned the IoT lifecycle service behind <strong>300k+ vehicles</strong>, a Kafka-driven Spring Boot pipeline with KIE/DRL rule evaluation for device activate/deactivate workflows.</li>
-            <li>Migrated vehicle search from a Go-based wrapper to a <strong>native Java Spring Boot service</strong>, eliminating an extra network hop and cutting <strong>100k network calls/day</strong>.</li>
-            <li>Migrated operations app endpoints from REST to <strong>gRPC</strong>, using binary serialization and HTTP/2 for a <strong>~15% latency reduction</strong>.</li>
-            <li>Built a <strong>Go-based vehicle search service</strong> ingesting real-time Share fleet events (location, fuel, mileage) into an Elasticsearch index for low-latency querying.</li>
-            <li>Fed the <strong>FleetOps dashboard</strong> real-time vehicle positioning and status data so operations teams could monitor fleet health and create service orders across active markets.</li>
-            <li>Automated airport vendor whitelisting across <strong>~30% of locations</strong>, replacing a fully manual entry process.</li>
-            <li>Built return-time approval feature that cut <strong>incorrect invoicing by 25%</strong> and reduced manual overrides.</li>
-            <li>Improved vehicle check-in workflows with complaint capture and post-processing optimizations, for <strong>20% faster processing</strong>.</li>
-            <li>Standardized service configs across <strong>12+ microservices</strong>; produced ownership maps and runbooks adopted org-wide, trimming maintenance overhead by <strong>30%</strong>.</li>
-            <li>On-call for mobility services; added distributed tracing and tuned alerting, cutting false positives and shortening recovery time for fleet incidents.</li>
-          </ul>
         </div>
-
-        <div class="role">
-          <div class="roleTop">
-            <strong>Software Engineering Intern · Sixt Rent a Car</strong>
-            <span class="date">Jan 2022 – Jun 2022</span>
+        <div class="xp">
+          <div class="when">JAN 2022 – JUN 2022</div>
+          <div>
+            <h3>Software Engineering Intern, <span class="co">Sixt</span></h3>
+            <ul>
+              <li>Built a Python / Flask microservice to recommend relocating free-floating vehicles, improving fleet utilization by <b>40%</b> on pilot cohorts.</li>
+              <li>Built an async activation/deactivation pipeline that reduced swap latency between Share and Rent fleets by <b>20%</b>.</li>
+            </ul>
           </div>
-          <ul>
-            <li>Built a Python / Flask microservice to recommend relocating free-floating vehicles, improving fleet utilization by <strong>40%</strong> on pilot cohorts.</li>
-            <li>Built an async activation/deactivation pipeline that reduced swap latency between Share and Rent fleets by <strong>20%</strong>.</li>
-          </ul>
-        </div>
         </div>
       </section>
 
-      <!-- ── Projects ── -->
+      <section id="education" class="fade-up">
+        <div class="sec-h"><span class="num">03</span><h2>Education</h2></div>
+        <div class="xp">
+          <div class="when">AUG 2025 – MAY 2027</div>
+          <div>
+            <h3>Master of Science, Computer Science</h3>
+            <div class="sub">Texas A&amp;M University · College Station, TX</div>
+            <div class="gpa">GPA 4.0 / 4.0</div>
+          </div>
+        </div>
+        <div class="xp">
+          <div class="when">AUG 2018 – JUL 2022</div>
+          <div>
+            <h3>Bachelor of Engineering, Computer Science</h3>
+            <div class="sub">JSS Science and Technology University · Mysore, India</div>
+            <div class="gpa">GPA 3.8 / 4.0</div>
+          </div>
+        </div>
+      </section>
+
       <section id="projects" class="fade-up">
-        <h2>Projects</h2>
-
-        <div class="role featured">
-          <div class="featured-accent"></div>
-          <div class="kicker" style="margin-bottom:8px">Featured Project</div>
-          <h3 style="font-size:1.15rem">Clinical Trial Search Engine</h3>
-          <p class="subtitle" style="margin-top:6px">
-            Hybrid search over 560k+ clinical trials using BM25 + dense semantic retrieval fused
-            with Reciprocal Rank Fusion, plus an AI-driven feasibility scoring layer.
-          </p>
-          <ul>
-            <li>Indexed 560k+ trials into PostgreSQL + OpenSearch; <strong>&lt;2s query latency</strong> with cache-first eligibility parsing.</li>
-            <li>BM25 + PubMedBERT dense retrieval via RRF: <strong>MRR@10 0.48, Hit Rate@10 70%</strong> on TREC 2021 benchmark.</li>
-            <li>FAISS-based vector reranker + FastAPI; Docker Compose for reproducible deploys.</li>
-          </ul>
-          <div class="meta" style="margin-top:12px">
-            <span class="pill">Python</span><span class="pill">FastAPI</span>
-            <span class="pill">OpenSearch</span><span class="pill">FAISS</span>
-            <span class="pill">PubMedBERT</span><span class="pill">PostgreSQL</span>
-            <span class="pill">Docker</span>
-          </div>
-          <div class="cardActions">
-            <a class="btn primary" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener">GitHub ↗</a>
-            <a class="btn" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine#readme" target="_blank" rel="noopener">Case study</a>
-          </div>
-        </div>
-
-        <div class="grid" data-stagger>
-          <div class="card">
-            <div>
-              <h3>AI-Powered Regulatory Document Classifier</h3>
-              <p class="subtitle" style="margin-top:6px;font-size:.92rem">
-                Reads regulatory documents the way a reviewer would (text plus images via BLIP
-                captioning), then classifies them with LLM reasoning, keeping a human in the loop.
-              </p>
-              <ul style="font-size:.9rem">
-                <li>Handles the first pass so reviewers only see the ambiguous cases.</li>
-                <li>Dynamic prompt library lets compliance teams update rules without redeploys.</li>
-              </ul>
-              <div class="meta">
-                <span class="pill">Flask</span><span class="pill">BLIP</span>
-                <span class="pill">LLMs</span><span class="pill">HITL</span>
-                <span class="pill">Docker</span>
-              </div>
+        <div class="sec-h"><span class="num">04</span><h2>Projects</h2></div>
+        <div class="bento">
+          <div class="pcard wide">
+            <a class="parrow" href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener" aria-label="Clinical Trial Search Engine on GitHub">↗</a>
+            <div class="ptag">Featured · Search / IR</div>
+            <h3>Clinical Trial Search Engine</h3>
+            <p>Hybrid search over 560k+ clinical trials: BM25 and PubMedBERT dense retrieval fused with
+              Reciprocal Rank Fusion, plus an AI feasibility scoring layer with cached eligibility parsing.</p>
+            <div class="pmetrics">
+              <div><b>560k+</b><span>trials indexed</span></div>
+              <div><b>&lt;2s</b><span>query latency</span></div>
+              <div><b>0.48</b><span>MRR@10 · TREC 2021</span></div>
+              <div><b>70%</b><span>Hit Rate@10</span></div>
             </div>
-            <div class="cardActions">
-              <a class="btn" href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noopener">GitHub ↗</a>
-              <a class="btn" href="https://github.com/ShashankC10/Regulatory-document-classifier#readme" target="_blank" rel="noopener">Case study</a>
+            <div class="ptech"><code>Python</code><code>FastAPI</code><code>OpenSearch</code><code>FAISS</code><code>PubMedBERT</code><code>PostgreSQL</code></div>
+            <div class="plinks">
+              <a href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine" target="_blank" rel="noopener">GitHub ↗</a>
+              <a href="https://github.com/ShashankC10/Clinical-Trial-SearchEngine#readme" target="_blank" rel="noopener">Case study</a>
             </div>
           </div>
-
-          <div class="card">
-            <div>
-              <h3>Prometheus AI Agent</h3>
-              <p class="subtitle" style="margin-top:6px;font-size:.92rem">
-                An agent you can ask about your infrastructure: it writes its own PromQL,
-                checks the metrics, and reports root causes in plain English.
-              </p>
-              <ul style="font-size:.9rem">
-                <li>Ask <em>"What caused the 5xx spike?"</em> and a LangChain ReAct agent writes the PromQL, fetches data, and returns an incident-style summary.</li>
-                <li>Statistical anomaly detection over time-series data via z-score analysis with trend classification and spike/dip identification.</li>
-                <li>Provider-agnostic LLM backend supporting Anthropic Claude and Ollama-served models via a config-driven switch.</li>
-              </ul>
-              <div class="meta">
-                <span class="pill">Python</span><span class="pill">LangChain</span>
-                <span class="pill">LangGraph</span><span class="pill">Claude</span>
-                <span class="pill">Prometheus</span><span class="pill">Streamlit</span>
-                <span class="pill">Docker</span>
-              </div>
-            </div>
-            <div class="cardActions">
-              <a class="btn" href="https://github.com/ShashankC10/prometheus-ai-agent" target="_blank" rel="noopener">GitHub ↗</a>
+          <div class="pcard">
+            <a class="parrow" href="https://github.com/ShashankC10/prometheus-ai-agent" target="_blank" rel="noopener" aria-label="Prometheus AI Agent on GitHub">↗</a>
+            <div class="ptag">LLM Agents / Observability</div>
+            <h3>Prometheus AI Agent</h3>
+            <p>Ask "what caused the 5xx spike?" and a ReAct agent writes the PromQL, checks the metrics,
+              and reports root causes in plain English. Claude or Ollama, config-switched.</p>
+            <div class="ptech"><code>LangChain</code><code>LangGraph</code><code>Claude</code><code>Prometheus</code></div>
+            <div class="plinks">
+              <a href="https://github.com/ShashankC10/prometheus-ai-agent" target="_blank" rel="noopener">GitHub ↗</a>
             </div>
           </div>
-
-          <div class="card">
-            <div>
-              <h3>Task Management &amp; Analytics Platform</h3>
-              <p class="subtitle" style="margin-top:6px;font-size:.92rem">
-                Two-service Spring Boot system: a REST Task API and an event-driven Analytics
-                service computing real-time throughput and state-transition metrics.
-              </p>
-              <ul style="font-size:.9rem">
-                <li>State-machine-driven task lifecycle (PENDING → IN_PROGRESS → DONE) with REST APIs and JPA persistence.</li>
-                <li>Kafka events consumed by analytics service; results indexed into OpenSearch dashboards.</li>
-                <li>Docker Compose deploys with GitHub Actions CI for automated builds and testing.</li>
-              </ul>
-              <div class="meta">
-                <span class="pill">Java</span><span class="pill">Spring Boot</span>
-                <span class="pill">Kafka</span><span class="pill">OpenSearch</span>
-                <span class="pill">JPA</span><span class="pill">Docker</span>
-              </div>
+          <div class="pcard">
+            <a class="parrow" href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noopener" aria-label="Regulatory Document Classifier on GitHub">↗</a>
+            <div class="ptag">Multi-modal AI</div>
+            <h3>Regulatory Document Classifier</h3>
+            <p>Reads compliance documents the way a reviewer would (text plus images), so humans
+              only see the ambiguous cases. Prompt rules update without redeploys.</p>
+            <div class="ptech"><code>Flask</code><code>BLIP</code><code>LLMs</code><code>Docker</code></div>
+            <div class="plinks">
+              <a href="https://github.com/ShashankC10/Regulatory-document-classifier" target="_blank" rel="noopener">GitHub ↗</a>
+              <a href="https://github.com/ShashankC10/Regulatory-document-classifier#readme" target="_blank" rel="noopener">Case study</a>
             </div>
-            <div class="cardActions">
-              <a class="btn" href="https://github.com/ShashankC10/task-management" target="_blank" rel="noopener">Task API ↗</a>
-              <a class="btn" href="https://github.com/ShashankC10/task-analytics" target="_blank" rel="noopener">Analytics ↗</a>
-              <a class="btn" href="https://github.com/ShashankC10/task-management#readme" target="_blank" rel="noopener">Case study</a>
+          </div>
+          <div class="pcard wide">
+            <a class="parrow" href="https://github.com/ShashankC10/task-management" target="_blank" rel="noopener" aria-label="Task Management Platform on GitHub">↗</a>
+            <div class="ptag">Event-driven Systems</div>
+            <h3>Task Management &amp; Analytics Platform</h3>
+            <p>Two Spring Boot services: a REST task API with a state-machine lifecycle, and a Kafka
+              consumer computing throughput and state-transition metrics into OpenSearch dashboards.</p>
+            <div class="ptech"><code>Java</code><code>Spring Boot</code><code>Kafka</code><code>OpenSearch</code><code>GitHub Actions</code></div>
+            <div class="plinks">
+              <a href="https://github.com/ShashankC10/task-management" target="_blank" rel="noopener">Task API ↗</a>
+              <a href="https://github.com/ShashankC10/task-analytics" target="_blank" rel="noopener">Analytics ↗</a>
+              <a href="https://github.com/ShashankC10/task-management#readme" target="_blank" rel="noopener">Case study</a>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ── Contact ── -->
-      <section id="contact" class="fade-up">
-        <h2>Contact</h2>
-        <p class="subtitle">
-          Looking for backend, distributed systems, and applied AI/ML roles.
-          I'm in College Station, TX (Central Time), and email is the fastest way to reach me.
-        </p>
-        <div class="cta" style="margin-top:18px">
-          <a class="btn primary" href="mailto:shashank3087@gmail.com">✉&nbsp;Email</a>
-          <a class="btn" href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn ↗</a>
-          <a class="btn" href="Shashank_Chandavarkar.pdf" target="_blank" rel="noopener">Resume ↓</a>
+      <section id="skills" class="fade-up">
+        <div class="sec-h"><span class="num">05</span><h2>Skills</h2></div>
+        <div>
+          <div class="srow"><div class="sl">Languages</div><div class="sv"><b>Java · Go · Python</b> · C++ · TypeScript · JavaScript</div></div>
+          <div class="srow"><div class="sl">Frameworks</div><div class="sv"><b>Spring Boot · FastAPI · gRPC</b> · JPA/Hibernate · Flask · Angular</div></div>
+          <div class="srow"><div class="sl">Data &amp; Search</div><div class="sv"><b>PostgreSQL · OpenSearch · Elasticsearch</b> · MySQL · MongoDB · Redis</div></div>
+          <div class="srow"><div class="sl">Infrastructure</div><div class="sv"><b>Kubernetes · Kafka · AWS</b> · Docker · Jenkins · Linux</div></div>
+          <div class="srow"><div class="sl">Observability</div><div class="sv"><b>Prometheus · Grafana</b> · Instana · Distributed Tracing</div></div>
+          <div class="srow"><div class="sl">AI / LLM</div><div class="sv"><b>LangChain · LangGraph · RAG</b> · ReAct Agents · FAISS · PyTorch · Ollama</div></div>
         </div>
       </section>
 
-      <footer>
-        © <span id="year"></span> Shashank Chandavarkar
-      </footer>
-    </main>
+      <section id="contact" class="contact fade-up">
+        <div class="sec-h"><span class="num">06</span><h2>Contact</h2></div>
+        <div class="big">Let's build something that <em>doesn't page you</em> at 3am.</div>
+        <p>Looking for backend, distributed systems, and applied AI/ML roles. I'm in College Station, TX
+          (Central Time), open to relocation and remote, and CPT / OPT eligible. Email is the fastest
+          way to reach me.</p>
+        <div class="mailrow">
+          <a class="bigmail" href="mailto:shashank3087@gmail.com">shashank3087@gmail.com <span class="ar">→</span></a>
+          <button id="copyEmail" class="copybtn" type="button" title="Copy email address">COPY</button>
+        </div>
+      </section>
+
+      <footer>© <span id="year"></span> SHASHANK CHANDAVARKAR · COLLEGE STATION, TX</footer>
+    </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>

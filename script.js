@@ -1,16 +1,33 @@
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const canHover = window.matchMedia('(hover: hover)').matches;
 
-/* ── Scroll: nav border, progress bar, back-to-top ── */
-const nav = document.getElementById('nav');
+/* ── Scroll: progress bar, back-to-top, scroll-spy ── */
 const progressBar = document.getElementById('progressBar');
 const toTop = document.getElementById('toTop');
-window.addEventListener('scroll', () => {
-  nav.classList.toggle('scrolled', window.scrollY > 40);
-  toTop.classList.toggle('show', window.scrollY > 600);
+const navLinks = [...document.querySelectorAll('.lnav a')];
+const sections = [...document.querySelectorAll('section[id]')];
+
+/* Position-based spy: always resolves to exactly one section, and short
+   sections near the page bottom (Contact) still activate. */
+function updateSpy() {
+  const probe = window.scrollY + window.innerHeight * 0.35;
+  let current = sections[0];
+  sections.forEach(s => { if (s.offsetTop <= probe) current = s; });
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+    current = sections[sections.length - 1];
+  }
+  navLinks.forEach(a =>
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current.id));
+}
+
+function onScroll() {
   const max = document.documentElement.scrollHeight - window.innerHeight;
   progressBar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
-}, { passive: true });
+  toTop.classList.toggle('show', window.scrollY > 600);
+  updateSpy();
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', onScroll, { passive: true });
+onScroll();
 
 toTop.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -19,16 +36,16 @@ toTop.addEventListener('click', () => {
 /* ── Theme toggle ── */
 const toggle = document.getElementById('themeToggle');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
-function applyTheme(light) {
-  document.body.classList.toggle('light', light);
-  toggle.textContent = light ? '☀️' : '🌙';
-  themeMeta.setAttribute('content', light ? '#f6f7fa' : '#0b0e14');
+function applyTheme(dark) {
+  document.body.classList.toggle('dark', dark);
+  toggle.textContent = dark ? 'LIGHT' : 'DARK';
+  themeMeta.setAttribute('content', dark ? '#0e0d0b' : '#ffffff');
 }
-applyTheme(localStorage.getItem('theme') === 'light');
+applyTheme(localStorage.getItem('theme') === 'dark');
 toggle.addEventListener('click', () => {
-  const light = !document.body.classList.contains('light');
-  applyTheme(light);
-  localStorage.setItem('theme', light ? 'light' : 'dark');
+  const dark = !document.body.classList.contains('dark');
+  applyTheme(dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
 });
 
 /* ── Copy email + toast ── */
@@ -44,7 +61,7 @@ function showToast(msg) {
 document.getElementById('copyEmail').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(EMAIL);
-    showToast('Email copied ✓');
+    showToast('EMAIL COPIED ✓');
   } catch {
     location.href = 'mailto:' + EMAIL;
   }
@@ -53,27 +70,13 @@ document.getElementById('copyEmail').addEventListener('click', async () => {
 /* ── Footer year ── */
 document.getElementById('year').textContent = new Date().getFullYear();
 
-/* ── Scroll fade-in ── */
+/* ── Section reveal ── */
 const fadeObs = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('visible'); fadeObs.unobserve(e.target); }
   });
-}, { threshold: 0.07 });
-document.querySelectorAll('.fade-up').forEach(el => fadeObs.observe(el));
-
-/* ── Staggered children animation ── */
-const staggerObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      Array.from(e.target.children).forEach((child, i) => {
-        child.style.transitionDelay = (i * 70) + 'ms';
-      });
-      staggerObs.unobserve(e.target);
-    }
-  });
 }, { threshold: 0.06 });
-document.querySelectorAll('[data-stagger]').forEach(el => staggerObs.observe(el));
+document.querySelectorAll('.fade-up').forEach(el => fadeObs.observe(el));
 
 /* ── Count-up stats ── */
 const counterObs = new IntersectionObserver(entries => {
@@ -95,41 +98,4 @@ const counterObs = new IntersectionObserver(entries => {
     })(start);
   });
 }, { threshold: 0.5 });
-document.querySelectorAll('.stat-num[data-count]').forEach(el => counterObs.observe(el));
-
-/* ── Cursor spotlight + tilt on cards ── */
-document.querySelectorAll('.card, .featured, .skill-group, .stat, .edu-card').forEach(el => {
-  const tilts = canHover && !reduceMotion && !el.classList.contains('featured');
-  el.addEventListener('mousemove', e => {
-    const r = el.getBoundingClientRect();
-    const x = e.clientX - r.left;
-    const y = e.clientY - r.top;
-    el.style.setProperty('--mx', x + 'px');
-    el.style.setProperty('--my', y + 'px');
-    if (tilts) {
-      const rx = ((y / r.height) - .5) * -5;
-      const ry = ((x / r.width) - .5) * 5;
-      el.style.transition = 'transform .1s ease-out';
-      el.style.transform =
-        `perspective(700px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-2px)`;
-    }
-  });
-  el.addEventListener('mouseleave', () => {
-    el.style.transform = '';
-    el.style.transition = '';
-  });
-});
-
-/* ── Active nav on scroll ── */
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.navlinks a[href^="#"]');
-const navObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      navLinks.forEach(a => a.classList.remove('active'));
-      const link = document.querySelector(`.navlinks a[href="#${e.target.id}"]`);
-      if (link) link.classList.add('active');
-    }
-  });
-}, { rootMargin: '-25% 0px -65% 0px' });
-sections.forEach(s => navObs.observe(s));
+document.querySelectorAll('.cnt[data-count]').forEach(el => counterObs.observe(el));
