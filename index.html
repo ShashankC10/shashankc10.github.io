@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shashank Chandavarkar | Backend Engineer</title>
-  <meta name="description" content="Shashank Chandavarkar, backend engineer. Java, Go, and Python services, Kafka pipelines, and applied AI. MS CS at Texas A&M." />
+  <meta name="description" content="Shashank Chandavarkar, backend engineer. Java, Go, and Python services, Kafka pipelines, and applied AI. MS CS at Texas A&amp;M." />
   <meta name="theme-color" content="#ffffff" />
   <meta property="og:title" content="Shashank Chandavarkar | Backend Engineer" />
   <meta property="og:description" content="Backend systems that fail less, and explain why when they do. Java, Go, Python, Kafka, and applied AI." />
@@ -13,12 +13,12 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <a class="skip" href="#about">Skip to content</a>
+  <a class="skip" href="#main">Skip to content</a>
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
   <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
 
@@ -35,13 +35,15 @@
           <a href="#experience"><span class="n">02</span> Experience</a>
           <a href="#education"><span class="n">03</span> Education</a>
           <a href="#projects"><span class="n">04</span> Projects</a>
-          <a href="#skills"><span class="n">05</span> Skills</a>
-          <a href="#contact"><span class="n">06</span> Contact</a>
+          <a href="blog/index.html"><span class="n">05</span> Blog ↗</a>
+          <a href="#skills"><span class="n">06</span> Skills</a>
+          <a href="#contact"><span class="n">07</span> Contact</a>
         </nav>
       </div>
       <div class="rail-bottom">
         <div class="badge"><span class="dot"></span> OPEN TO BACKEND &amp; APPLIED AI ROLES</div>
         <div class="socials">
+          <a href="blog/index.html">Blog ↗</a>
           <a href="https://github.com/ShashankC10" target="_blank" rel="noopener">GitHub</a>
           <a href="https://www.linkedin.com/in/shashank-chandavarkar" target="_blank" rel="noopener">LinkedIn</a>
           <a href="mailto:shashank3087@gmail.com">Email</a>
@@ -51,7 +53,7 @@
     </aside>
 
     <!-- ── Content ── -->
-    <div class="content">
+    <main id="main" class="content" tabindex="-1">
 
       <section id="about" class="about fade-up">
         <div class="sec-h"><span class="num">01</span><h2>About</h2></div>
@@ -182,8 +184,30 @@
         </div>
       </section>
 
+      <section id="blog" class="fade-up">
+        <div class="sec-h"><span class="num">05</span><h2>Blog</h2></div>
+        <div class="blog-lede">
+          <p>Working notes on my projects and what I'm studying: the questions, the wrong turns, and the parts I'm still unsure about.</p>
+          <a href="blog/index.html">Read the notes ↗</a>
+        </div>
+        <div class="blog-preview-grid">
+          <a class="blog-preview-card" href="blog/projects/phonepe-pulse.html">
+            <div class="entry-meta"><span>Project · 001</span><span>Data analysis</span></div>
+            <h3>Archetypes and Defectors in PhonePe Pulse</h3>
+            <p>I started out ranking districts by payment volume, then realized I was mostly measuring which districts are big. Here's what the data said once I fixed that.</p>
+            <span class="entry-cta">Read the write-up <i>↗</i></span>
+          </a>
+          <a class="blog-preview-card study-card" href="blog/studies/anomaly-detection.html">
+            <div class="entry-meta"><span>Study · 001</span><span>ML systems</span></div>
+            <h3>Anomaly Detection Starts with Defining Normal</h3>
+            <p>Notes from studying anomaly detection, where I kept landing on the same conclusion: picking the model is the easy part.</p>
+            <span class="entry-cta">Read my notes <i>↗</i></span>
+          </a>
+        </div>
+      </section>
+
       <section id="skills" class="fade-up">
-        <div class="sec-h"><span class="num">05</span><h2>Skills</h2></div>
+        <div class="sec-h"><span class="num">06</span><h2>Skills</h2></div>
         <div>
           <div class="srow"><div class="sl">Languages</div><div class="sv"><b>Java · Go · Python</b> · C++ · TypeScript · JavaScript</div></div>
           <div class="srow"><div class="sl">Frameworks</div><div class="sv"><b>Spring Boot · FastAPI · gRPC</b> · JPA/Hibernate · Flask · Angular</div></div>
@@ -195,7 +219,7 @@
       </section>
 
       <section id="contact" class="contact fade-up">
-        <div class="sec-h"><span class="num">06</span><h2>Contact</h2></div>
+        <div class="sec-h"><span class="num">07</span><h2>Contact</h2></div>
         <div class="big">Let's build something that <em>doesn't page you</em> at 3am.</div>
         <p>Looking for backend, distributed systems, and applied AI/ML roles. I'm in College Station, TX
           (Central Time), open to relocation and remote, and CPT / OPT eligible. Email is the fastest
@@ -207,7 +231,7 @@
       </section>
 
       <footer>© <span id="year"></span> SHASHANK CHANDAVARKAR · COLLEGE STATION, TX</footer>
-    </div>
+    </main>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>

@@ -9,6 +9,7 @@ const sections = [...document.querySelectorAll('section[id]')];
 /* Position-based spy: always resolves to exactly one section, and short
    sections near the page bottom (Contact) still activate. */
 function updateSpy() {
+  if (!sections.length) return;
   const probe = window.scrollY + window.innerHeight * 0.35;
   let current = sections[0];
   sections.forEach(s => { if (s.offsetTop <= probe) current = s; });
@@ -21,15 +22,17 @@ function updateSpy() {
 
 function onScroll() {
   const max = document.documentElement.scrollHeight - window.innerHeight;
-  progressBar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
-  toTop.classList.toggle('show', window.scrollY > 600);
+  if (progressBar) progressBar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+  if (toTop) toTop.classList.toggle('show', window.scrollY > 600);
   updateSpy();
 }
-window.addEventListener('scroll', onScroll, { passive: true });
-window.addEventListener('resize', onScroll, { passive: true });
-onScroll();
+if (progressBar || toTop || sections.length) {
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  onScroll();
+}
 
-toTop.addEventListener('click', () => {
+toTop?.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
 });
 
@@ -38,11 +41,11 @@ const toggle = document.getElementById('themeToggle');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 function applyTheme(dark) {
   document.body.classList.toggle('dark', dark);
-  toggle.textContent = dark ? 'LIGHT' : 'DARK';
-  themeMeta.setAttribute('content', dark ? '#0e0d0b' : '#ffffff');
+  if (toggle) toggle.textContent = dark ? 'LIGHT' : 'DARK';
+  themeMeta?.setAttribute('content', dark ? '#0e0d0b' : '#ffffff');
 }
 applyTheme(localStorage.getItem('theme') === 'dark');
-toggle.addEventListener('click', () => {
+toggle?.addEventListener('click', () => {
   const dark = !document.body.classList.contains('dark');
   applyTheme(dark);
   localStorage.setItem('theme', dark ? 'dark' : 'light');
@@ -58,7 +61,7 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
 }
-document.getElementById('copyEmail').addEventListener('click', async () => {
+document.getElementById('copyEmail')?.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(EMAIL);
     showToast('EMAIL COPIED ✓');
@@ -68,7 +71,8 @@ document.getElementById('copyEmail').addEventListener('click', async () => {
 });
 
 /* ── Footer year ── */
-document.getElementById('year').textContent = new Date().getFullYear();
+const year = document.getElementById('year');
+if (year) year.textContent = new Date().getFullYear();
 
 /* ── Section reveal ── */
 const fadeObs = new IntersectionObserver(entries => {

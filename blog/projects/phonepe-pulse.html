@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archetypes and Defectors in PhonePe Pulse | Shashank Chandavarkar</title>
+  <meta name="description" content="How I adjusted district-level PhonePe Pulse activity for registered users, used K-Means to find behavioral archetypes, and detected anomalies within comparable peer groups." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Archetypes and Defectors in PhonePe Pulse" />
+  <meta property="og:description" content="What district-level PhonePe activity looks like once you stop measuring size. 2018Q1 through 2024Q4." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/projects/phonepe-pulse.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Project note · PhonePe Pulse · 2018–2024</p>
+        <h1>Archetypes and Defectors in PhonePe Pulse</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-07-11">July 11, 2026</time> · 5 min read · <a href="https://github.com/ShashankC10/phonePePulseEDA" target="_blank" rel="noopener">GitHub ↗</a></p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">Every PhonePe Pulse dashboard I found ranked districts by totals, and the ranking barely moved: big districts on top, small ones at the bottom. I wanted to know what the data says once you stop measuring size.</p>
+
+        <h2>Why I stopped trusting the rankings</h2>
+        <p>My first pass at this data was exactly what you'd expect: rank states and districts by transaction count, make a bar chart, feel productive. The problem became obvious pretty fast: the ranking was mostly a population map. A district with more registered users produces more transactions even if each individual user barely opens the app.</p>
+        <p>So I threw out the leaderboard and reframed the whole thing around a question I actually cared about: <strong>is there one platform-wide pattern here, or are there genuinely different district behaviors hiding under the aggregate growth?</strong> I didn't care which district was biggest. I cared which districts behaved strangely for their size.</p>
+
+        <h2>First, the unglamorous part</h2>
+        <p>PhonePe publishes its anonymized aggregates as a big hierarchy of JSON files. I parsed the map-level transaction and user views, standardized the geographic names (more painful than it sounds), and joined everything at a common <strong>district × year × quarter</strong> grain. The final panel came out to 20,604 district-quarter rows, covering 845 state-district identities across 28 quarters and 36 states and union territories.</p>
+        <p>Each row carries four measures:</p>
+        <ul>
+          <li><strong>Transaction count</strong>, how frequently the platform was used.</li>
+          <li><strong>Transaction amount</strong>, the value moving through it.</li>
+          <li><strong>Registered users</strong>, the denominator for district scale.</li>
+          <li><strong>App opens</strong>, an engagement signal distinct from completed payments.</li>
+        </ul>
+        <p>Before touching any models I normalized join keys, dropped duplicate composite keys, and dealt with zero and non-finite denominators. I also learned the hard way that district names collide. Nine districts share a name with a district in another state, so state + district has to be the identity. None of this is fun to write about, but every comparison downstream silently assumes I got it right.</p>
+        <p class="note">The analysis uses PhonePe's public aggregate dataset, not individual payment records. <a href="https://github.com/PhonePe/pulse" target="_blank" rel="noopener">Dataset documentation ↗</a></p>
+
+        <h2>Divide by users, and the story changes</h2>
+        <p>Raw totals answer a size question, and I'd already decided I didn't care about size. So I divided each activity measure by registered users in the same district-quarter:</p>
+        <pre><code>txns_per_user   = transaction_count  / registered_users
+amount_per_user = transaction_amount / registered_users
+opens_per_user  = app_opens          / registered_users</code></pre>
+        <p>This one change reshuffled everything. Districts that dominate the totals suddenly looked ordinary per user, and some small districts turned out to have surprisingly intense usage that no national ranking would ever surface.</p>
+        <p>For clustering I applied <code>log1p</code> transforms (the right tails in this data are brutal) and standardized the features within each quarter, so no single high-variance measure could take over the distance calculation during years of rapid platform growth.</p>
+
+        <h2>Phase one: find the archetypes</h2>
+        <p>I whitened the features with a three-component PCA, then ran K-Means on all three components. The chart only shows PC1 and PC2 because screens are flat; the model itself keeps the third one.</p>
+        <p>Choosing <code>k</code> was a judgment call, and I want to be upfront about it: the silhouette score actually peaked at <strong>0.248 for five clusters</strong>, while three clusters scored <strong>0.224</strong>, about 10% lower. I went with three anyway, because three broad tiers told a story I could explain, and five didn't. They're descriptive archetypes, not permanent identities.</p>
+        <p>One caveat before the churn numbers: the K-Means map is fitted once on all district-quarters pooled together, so comparing <strong>2019Q4</strong> with <strong>2024Q4</strong> measures movement under that fixed map, not the stability of independently refitted clusters. Of 675 matched districts, <strong>271 stayed in the same tier, 147 moved up, and 257 moved down</strong>.</p>
+
+        <h2>Phase two: find the defectors</h2>
+        <p>Running an anomaly detector globally mixes up two things I wanted to keep separate: being different from other archetypes, and being different from your <em>own</em> archetype. So I ran the detection again inside each <strong>quarter × tier</strong>, where the comparison actually means something.</p>
+        <p>I used three detectors that each define “weird” differently:</p>
+        <ul>
+          <li><strong>Robust Z-score:</strong> deviation in <code>log1p(amount_per_user)</code>, using the median and median absolute deviation.</li>
+          <li><strong>Isolation Forest:</strong> easy-to-isolate points, using all three log-transformed, standardized features.</li>
+          <li><strong>Local Outlier Factor:</strong> whether a district sits in a sparser neighborhood, in the same three-feature space.</li>
+        </ul>
+        <p>I only called a district-quarter a consensus flag when at least two of the three agreed. Globally, the consensus flagged 682 rows; within tiers it flagged 821, and 524 of those overlapped. The disagreement is the interesting part: conditioning on peers cleared 158 global-only flags and surfaced 297 new ones the global view had missed entirely.</p>
+        <p>I want to be careful about what this does and doesn't mean. There's no ground truth telling me a district is “genuinely” anomalous. A flag isn't a finding, it's a reason to go ask what happened.</p>
+
+        <h2>What I actually took away</h2>
+        <ul>
+          <li><strong>Growth was nowhere near uniform.</strong> The smooth national curve hides a lot of district-level drama.</li>
+          <li><strong>The denominator was the whole story.</strong> Per-user normalization surfaced intensity that raw totals completely buried.</li>
+          <li><strong>Districts move around more than I expected.</strong> 59.9% of matched districts changed tier between the two snapshots.</li>
+          <li><strong>Local context rewrote the queue.</strong> Peer conditioning surfaced 297 flags the global consensus never saw.</li>
+        </ul>
+        <blockquote>Somewhere along the way I stopped asking “which district is farthest from India?” and started asking “which district stopped behaving like its peers?”</blockquote>
+        <p>The single most interesting lead was Central district in Delhi: it dropped from Tier 1 in 2019Q4 to Tier 2 in 2024Q4 and racked up 20 within-tier consensus flags across the panel. I don't know why yet, and that's kind of the point. The flags tell me where to look, not what I'll find.</p>
+
+        <h2>Where this stops</h2>
+        <p>To be clear about scope: this is an exploration of PhonePe's published aggregates, not a measurement of digital payments in India. A registered user isn't necessarily an active user, or even a resident. And aggregates can't explain individual behavior, let alone causality.</p>
+        <p>The anomaly work also has no labeled ground truth, so detector consensus is a prioritization trick, not proof. If I pick this back up, the next step is pairing the flagged periods with outside context (connectivity, urbanization, policy changes, local events) before making any stronger claims.</p>
+        <p>If you want to dig in: the <a href="https://github.com/ShashankC10/phonePePulseEDA" target="_blank" rel="noopener">code and README</a>, the <a href="https://github.com/ShashankC10/phonePePulseEDA/blob/main/main_notebook.ipynb" target="_blank" rel="noopener">full notebook</a>, a <a href="https://www.youtube.com/watch?v=Z0OK7tT9yGA" target="_blank" rel="noopener">video walkthrough</a>, and the <a href="https://github.com/PhonePe/pulse" target="_blank" rel="noopener">PhonePe Pulse dataset</a>.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="../studies/anomaly-detection.html">Next: Anomaly Detection →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>

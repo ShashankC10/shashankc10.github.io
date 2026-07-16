@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog | Shashank Chandavarkar</title>
+  <meta name="description" content="Shashank Chandavarkar's working notes on data, backend systems, and applied AI: the questions, wrong turns, and honest limits behind the projects." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Blog | Shashank Chandavarkar" />
+  <meta property="og:description" content="Working notes on projects and study: the questions, the wrong turns, and the parts I'm still unsure about." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="#projects">Projects</a>
+      <a href="#study">Study</a>
+      <a href="../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="blog-main">
+    <header class="blog-head">
+      <h1>Me, thinking <em>out loud.</em></h1>
+      <p>I keep these notes mostly for myself: the question I actually started with, the wrong turns, why I picked one method over another, and the parts I'm still not sure about. If you want to see how I think, this is a better window than the portfolio.</p>
+    </header>
+
+    <section id="projects" class="post-group">
+      <h2>Projects</h2>
+      <ul class="post-list">
+        <li>
+          <h3><a href="projects/phonepe-pulse.html">Archetypes and Defectors in PhonePe Pulse</a></h3>
+          <p class="post-date">July 11, 2026 · 5 min read</p>
+          <p>I started out ranking Indian districts by payment volume and realized I was mostly measuring which districts are big. So I divided by registered users, clustered what was left, and went looking for districts that stopped acting like their neighbors.</p>
+          <p class="post-links">
+            <a href="projects/phonepe-pulse.html">Read the write-up</a>
+            <a class="secondary" href="https://github.com/ShashankC10/phonePePulseEDA" target="_blank" rel="noopener">Repository ↗</a>
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="study" class="post-group">
+      <h2>Study</h2>
+      <ul class="post-list">
+        <li>
+          <h3><a href="studies/anomaly-detection.html">Anomaly Detection Starts with Defining Normal</a></h3>
+          <p class="post-date">July 11, 2026 · 8 min read · companion PDF</p>
+          <p>I went into this study expecting to compare algorithms. I came out convinced the algorithm is the easy part. The real work is deciding what “normal” means, and what happens to the person on the other end of the alerts.</p>
+          <p class="post-links">
+            <a href="studies/anomaly-detection.html">Read my notes</a>
+            <a class="secondary" href="../assets/studies/anomaly-detection-study-discussion.pdf" target="_blank" rel="noopener">Open the PDF ↗</a>
+          </p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="blog-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Return to portfolio ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../script.js"></script>
+</body>
+</html>
