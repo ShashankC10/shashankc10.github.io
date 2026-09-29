@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search Ranking Begins with the Query | Shashank Chandavarkar</title>
+  <meta name="description" content="A popular product can still be the wrong answer. Notes on finding candidates, learning from biased clicks, and checking which searches a new ranker actually improves." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Search Ranking Begins with the Query" />
+  <meta property="og:description" content="A popular product can still be the wrong answer. Notes on finding candidates, learning from biased clicks, and checking which searches a new ranker actually improves." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/studies/search-ranking.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Study note · Search ranking</p>
+        <h1>Search Ranking Begins with the Query</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">If I search for red running shoes, a popular blue sneaker isn't quite right. A red hiking boot isn't either. That small example captures what interests me about search: the result has to answer this request, even when the catalogue has plenty of things people generally like.</p>
+
+        <h2>Relevance belongs to the query</h2>
+        <p>For these notes, I'm thinking about product search. I'd want to separate the user's constraints from preferences the system can rank around. A specified size might be a hard filter. Popularity could help order the remaining options, but shouldn't quietly override what the person asked for.</p>
+        <p>That makes query-document features especially useful: word overlap, exact product or brand matches, and semantic similarity between the query and the description. Ratings and sales history add context. They can't replace relevance to the query.</p>
+        <p>Query understanding also has room for mistakes. Correcting “runing” is useful; rewriting an unfamiliar product code into an ordinary word may destroy the search. I'd keep exact identifiers intact and test query changes against examples where literal matching matters.</p>
+
+        <h2>Retrieval sets the ceiling</h2>
+        <p>A ranker can only order what it receives. I'd start by asking whether the retrieval stage finds the right products at all, before measuring how elegantly the model sorts them.</p>
+        <p>BM25 is a useful lexical baseline. It rewards matching terms while accounting for term frequency saturation and document length. Semantic retrieval offers another route when the user and catalogue use different words. I'd try a hybrid candidate set, then inspect which queries benefit from each source.</p>
+        <p>For example, “shoes for a wet trail” may benefit from descriptions mentioning waterproof trail footwear. An exact model number needs a different kind of precision. I wouldn't assume one retrieval method wins across both.</p>
+        <p>At a larger scale, I'd use a cheap retrieval stage followed by a richer ranker. A cross-encoder could compare the query and document together for a small final shortlist if the latency budget allows it. Every additional stage should earn its place in evaluation; a small catalogue might need much less machinery.</p>
+
+        <h2>Clicks come with baggage</h2>
+        <p>Training labels are where the problem gets awkward. Human relevance judgments cost time, while clicks are plentiful. But a click reflects where the result appeared, whether the user noticed it, and how tempting its presentation was, as well as relevance.</p>
+        <p>Imagine two equally useful products, one in position one and one in position eight. If the first gets more clicks, I can't conclude that it deserves the higher position. Training directly on those clicks can reinforce the ordering that generated them.</p>
+        <p><a href="https://www.microsoft.com/en-us/research/publication/unbiased-learning-rank-biased-feedback/" target="_blank" rel="noopener">Unbiased Learning-to-Rank with Biased Feedback</a> studies this problem using propensity weighting. The idea is to account for the opportunity a result had to be observed. It depends on estimating exposure, not just taking the reciprocal of raw click-through rate. I'd want reliable impression logs and a way to check the propensity assumptions before trusting the correction.</p>
+
+        <h2>Learning an order</h2>
+        <p>A pointwise model predicts a score for each query-product pair. A pairwise model learns which of two results should come first. List-aware objectives use the impact on the ranking to guide training. These views helped me understand why an ordinary relevance regressor is a starting point rather than the only formulation.</p>
+        <p>LambdaMART is worth trying with structured relevance features. It uses boosted trees and ranking-aware gradients related to the effect of swapping results. I think describing it as simply “directly maximizing NDCG” hides too much: the metric depends on a discrete ordering, so the training procedure uses a surrogate.</p>
+        <p>I'd group examples by query during ranking training and evaluate on held-out searches. For a system trained on evolving click logs, I'd also use a later time period and inspect frequent queries separately from rare ones. Otherwise, a strong aggregate result could mostly reflect queries the system has seen many times.</p>
+
+        <h2>One useful result can matter more than ten decent ones</h2>
+        <p>NDCG@K rewards relevant results near the top and compares the ordering with an ideal list. For a lookup where someone wants one specific product, reciprocal rank of the first relevant result is useful too. The right measure depends on what a successful search looks like.</p>
+        <p>Online, I'd watch successful purchases or task completion alongside reformulations, zero-result searches, and latency. A search with no click isn't automatically a failure: the page may have answered the question directly. Equally, more clicks can mean users are struggling to find the right result.</p>
+        <p>I'd keep a small set of queries to inspect after each change: exact identifiers, misspellings, broad category searches, and uncommon descriptive requests. Seeing a new model mishandle a product code would tell me something a tiny improvement in average NDCG might conceal.</p>
+
+        <h2>The version I'd build first</h2>
+        <p>I'd begin with lexical retrieval, explicit availability filters, and a modest relevance test set. Then I'd add semantic candidates and a learned ranker one at a time. My question at each step would be concrete: which searches now work that used to fail, and which ones got worse? That's a more useful reason to keep a model than the sophistication of its name.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="churn-prediction.html">Next: Churn Prediction →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>

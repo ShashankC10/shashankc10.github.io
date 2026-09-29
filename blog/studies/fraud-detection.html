@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fraud Detection Has to Make a Decision | Shashank Chandavarkar</title>
+  <meta name="description" content="A fraud score has to become an approval, a verification step, or a decline. I wanted to understand how costs, delayed labels, and ordinary customer behavior change that decision." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Fraud Detection Has to Make a Decision" />
+  <meta property="og:description" content="A fraud score has to become an approval, a verification step, or a decline. I wanted to understand how costs, delayed labels, and ordinary customer behavior change that decision." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/studies/fraud-detection.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Study note · Fraud detection</p>
+        <h1>Fraud Detection Has to Make a Decision</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">A fraud score has to turn into something: let the payment through, ask the customer to verify it, or decline it. That's what makes this problem feel different from an ordinary classification exercise. A false positive happens to someone who was trying to buy something.</p>
+
+        <h2>Start with the decision</h2>
+        <p>I'm using card payments as the example here. Insurance claims, account takeovers, and return fraud have different evidence and response times, so I'd resist treating them as one interchangeable problem.</p>
+        <p>For a payment, I'd first ask how long the system has to respond, what a missed fraud costs, and what options exist between approval and rejection. A verification step gives the system a way to handle uncertainty, though it brings friction of its own.</p>
+        <p>Accuracy is a poor starting metric when fraud is rare. In a toy set of 100,000 payments containing 200 frauds, approving everything gets 99.8% accuracy. It also catches none of the fraud. I'd rather see the number of fraudulent payments caught beside the number of legitimate customers interrupted.</p>
+
+        <h2>History makes a transaction interpretable</h2>
+        <p>A large purchase alone doesn't tell me enough. I'd compare the amount with the account's past spending, look at whether the device and merchant are familiar, and check how many attempts happened recently. A burst of declined payments followed by a new purchase might deserve a different score from one isolated large order.</p>
+        <p>The window matters. Counts over the last few minutes answer a different question from counts over the last day. I'd build both where useful, making sure that historical features contain only events available before the payment decision. A later chargeback or investigator verdict belongs in the label, not in a feature pretending to be historical.</p>
+        <p>Location and device signals need restraint. An apparent jump between countries could reflect payment routing or imperfect geolocation. A shared device might belong to a household. I'd treat those as pieces of evidence and inspect their errors, rather than writing a rule that equates unfamiliarity with fraud.</p>
+
+        <h2>What a threshold actually assumes</h2>
+        <p>A simplified cost calculation helps me understand the threshold. Suppose allowing a fraudulent payment costs $500, blocking a legitimate one costs $30, and the other two outcomes cost nothing. Let <code>p</code> be a calibrated estimate of fraud probability.</p>
+        <pre><code>Expected cost of allowing = 500 × p
+Expected cost of blocking = 30 × (1 - p)
+
+Block when 500 × p &gt; 30 × (1 - p)
+So p &gt; 30 / 530, about 5.7%</code></pre>
+        <p>Those are illustrative costs, not a recommended threshold. Real costs vary by transaction, and verification introduces another action to compare. Still, the example shows why 0.5 isn't a special business boundary.</p>
+        <p>It also depends on <em>p</em> meaning what I think it means. Ranking fraud above legitimate payments doesn't automatically produce reliable probabilities. I'd check calibration on held-out data with a representative fraud rate, especially after changing class weights or sampling. The <a href="https://scikit-learn.org/stable/modules/calibration.html" target="_blank" rel="noopener">scikit-learn calibration guide</a> explains this distinction and how reliability diagrams expose it.</p>
+
+        <h2>A model I'd be willing to debug</h2>
+        <p>I'd keep a small, understandable rules baseline and compare logistic regression with a boosted-tree model. Trees can capture interactions between amount, device history, and velocity without requiring a sequence model immediately.</p>
+        <p>Class weighting or undersampling may help during training, but I'd leave validation representative of the traffic the model will face. Synthetic oversampling deserves particular care here: interpolating two fraud examples can create a transaction that makes no sense. I'd want evidence that it helps before adding it.</p>
+        <p>Graph features become interesting when linked accounts and devices contain evidence that a single transaction misses. Even then, I'd start by checking a few explicit relationship features before committing to a graph neural network. Sharing a connection with a flagged account isn't proof of wrongdoing.</p>
+
+        <h2>The labels arrive after the decision</h2>
+        <p>This is the production detail I find easiest to underestimate. Some fraud is confirmed much later. If I label every recent payment without a complaint as legitimate, I may just be measuring which cases haven't been resolved yet.</p>
+        <p>I'd evaluate on later periods whose outcomes have had time to mature. Precision-recall curves help with model comparison; at the chosen operating point, I'd also report fraud value missed, legitimate declines, verification volume, and the workload sent to reviewers. A single F1 score doesn't describe all of those costs.</p>
+        <p>Serving needs its own checks. Feature lookups can fail, event streams can lag, and retries can accidentally inflate velocity counts. I'd measure end-to-end tail latency and agree on fallback behavior for missing evidence. A fast model doesn't make the whole decision path fast.</p>
+
+        <h2>What would convince me it works?</h2>
+        <p>I'd want better outcomes on future traffic, a manageable review queue, and errors that the team can investigate. I'd also keep watching for changing behavior, since adversaries can respond to the system. Retraining may be part of that response, but so might fixing a delayed feed or retiring a rule that now blocks too many legitimate customers. The score is only useful if the decision around it holds up.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="search-ranking.html">Next: Search Ranking →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>

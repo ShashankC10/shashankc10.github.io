@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demand Forecasting When the Shelf Is Empty | Shashank Chandavarkar</title>
+  <meta name="description" content="A store that sells out hasn&#x27;t necessarily forecast well. My notes on stockouts, honest backtests, and why the cost of leftover bread belongs in the problem from the start." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Demand Forecasting When the Shelf Is Empty" />
+  <meta property="og:description" content="A store that sells out hasn&#x27;t necessarily forecast well. My notes on stockouts, honest backtests, and why the cost of leftover bread belongs in the problem from the start." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/studies/demand-forecasting.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Study note · Forecasting</p>
+        <h1>Demand Forecasting When the Shelf Is Empty</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">A store can sell every loaf of bread on the shelf and still have ordered too little. That is the detail I keep coming back to with demand forecasting: the sales history records what people bought, but it doesn't always tell me what they wanted.</p>
+
+        <h2>What am I actually forecasting?</h2>
+        <p>“Predict next week's demand” sounds specific until I try to turn it into a dataset. Is that daily units per product, weekly revenue per store, or the total stock a warehouse needs? Each version changes the target, the features, and what a useful error measure looks like.</p>
+        <p>For these notes, I'm thinking about a grocery store ordering bread for the next seven days. The forecast needs to arrive before the order goes in. Being a little late with a very accurate prediction doesn't help anyone making that decision.</p>
+        <p>I'd also ask about the cost of getting it wrong. Unsold bread goes stale. Selling out means losing purchases, and possibly customers. Those costs are unlikely to be equal, so minimizing average error is only part of the job.</p>
+
+        <h2>The shelf changes what the data can tell me</h2>
+        <p>Suppose, as a toy example, the store stocks 100 loaves and sells all 100 by noon. The recorded sales are 100. Demand might have been 110 or 180; I can't tell from the sales column. Training a model to reproduce 100 without considering availability could teach it to repeat the shortage.</p>
+        <p>That's why I'd join inventory records before getting too interested in seasonality. A zero with stock available means something different from a zero with an empty shelf. Stockout periods need an explicit treatment, whether that's a censored-demand model, a carefully justified estimate, or a flag that keeps me from interpreting them as ordinary observations. Filling them in doesn't make the uncertainty disappear.</p>
+        <p>Then I'd look at weekly patterns, promotions, price changes, and holidays. I want to know whether a spike repeats, whether it came from a discount, and whether the store was even open. A plot of sales beside availability and price would answer more for me at this stage than a model leaderboard.</p>
+
+        <h2>Only use what I could have known</h2>
+        <p>Last week's sales and recent rolling averages are natural features. The trap is building them with information that wouldn't exist when the forecast is issued. Even a rolling mean can leak the target if I forget to shift the window.</p>
+        <pre><code>At the forecast cutoff:
+  use sales recorded before the cutoff
+  use promotions already scheduled
+  use the weather forecast available then
+  predict the next seven days</code></pre>
+        <p>The seven-day horizon makes this more subtle. When I forecast next Sunday on Monday, Saturday's actual sales aren't available yet. I'd either predict each horizon directly or feed earlier predictions into later steps and account for the accumulated error. A backtest that quietly uses Saturday's actual sales is testing a different system.</p>
+
+        <h2>Give the simple forecast a fair chance</h2>
+        <p>I'd start with last week's same-day sales and a recent average. They're easy to inspect, and they tell me how much work a more complicated model is really doing.</p>
+        <p>Exponential smoothing is appealing when level, trend, and seasonality explain much of the series. ARIMA offers another way to model temporal dependence, with seasonal and external-regressor extensions when appropriate. Across many products, a shared LightGBM model is worth trying: lag features, product metadata, prices, and calendar variables can all live in one training table.</p>
+        <p>The reason I'd consider a global model is that individual products may have very little history. Sharing patterns across related products could help a new loaf find a reasonable starting forecast. It still won't tell me how customers will respond to a completely unfamiliar product. I'd want wider uncertainty there, rather than a precise-looking guess.</p>
+
+        <h2>A forecast needs room for uncertainty</h2>
+        <p>A median forecast answers a different question from an upper quantile. If under-ordering is expensive, a higher quantile may be useful input to the stock decision. P90 means the model estimates a 90% chance of demand falling at or below that value; it isn't a promise that ordering that amount is always sensible. Shelf life, current inventory, and delivery lead time still matter.</p>
+        <p>For evaluation, I'd track absolute error and whether the model consistently underpredicts. Percentage errors deserve care when actual demand is zero or tiny. I'd also check interval coverage: if a supposed 90% interval misses much more often than expected, its reassuring width is misleading.</p>
+        <p>I'd evaluate this with successive historical cutoffs, forecasting the full seven days each time. That follows the <a href="https://otexts.com/fpp3/tscv.html" target="_blank" rel="noopener">rolling-origin approach described in Forecasting: Principles and Practice</a>. I want separate results for ordinary weeks, promotions, and low-volume products, because one average can hide a very expensive weakness.</p>
+
+        <h2>What I'd want to try next</h2>
+        <p>A small experiment would be enough to get started: compare a seasonal baseline with a global tree model, simulate the ordering decision, and inspect the days where one wins and the other fails. I'd keep stockout assumptions visible throughout. A lower error score is useful, but I'd be much more convinced by fewer empty shelves without a pile of wasted bread.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="anomaly-detection.html">Next: Anomaly Detection →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>

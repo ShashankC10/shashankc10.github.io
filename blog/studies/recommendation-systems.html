@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What an Unwatched Film Doesn&#x27;t Tell Me | Shashank Chandavarkar</title>
+  <meta name="description" content="An empty cell in a user-item matrix could mean dislike, or just that someone never saw the film. I worked through what that ambiguity means for retrieval, ranking, and discovery." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="What an Unwatched Film Doesn&#x27;t Tell Me" />
+  <meta property="og:description" content="An empty cell in a user-item matrix could mean dislike, or just that someone never saw the film. I worked through what that ambiguity means for retrieval, ranking, and discovery." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/studies/recommendation-systems.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Study note · Recommendation systems</p>
+        <h1>What an Unwatched Film Doesn&#x27;t Tell Me</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">An unwatched film is a surprisingly ambiguous piece of data. Maybe I don't like it. Maybe I've never heard of it. Maybe it was buried so far down the page that I never had a chance to choose it. A recommender has to learn from all of those possibilities sharing the same empty cell.</p>
+
+        <h2>The missing rating isn't a no</h2>
+        <p>The user-item matrix is a useful starting picture: people down one axis, films along the other, and interactions in the cells. Most cells are empty. I find the important question is why they're empty, because treating every missing interaction as dislike turns the existing catalogue exposure into a statement about taste.</p>
+        <p>Explicit ratings help, but even those come from people who chose to rate. Implicit feedback is more plentiful and harder to interpret. Finishing a film suggests interest; it doesn't prove enjoyment. A quick click followed by an immediate exit tells a different story from watching the whole thing twice.</p>
+        <p>I'd want impression logs alongside the interactions: what was shown, where it appeared, and what happened afterward. Otherwise, I can't reliably distinguish something the user rejected from something they never saw.</p>
+
+        <h2>Similarity gives me a starting point</h2>
+        <p>Item-based collaborative filtering is easy to reason about. If people who enjoy one film also enjoy another, the second might be a useful suggestion. Content-based matching takes a different route, using genre, language, descriptions, and other metadata. That gives a new film a chance before it has an audience.</p>
+        <p>Matrix factorization compresses the interaction patterns into user and item vectors. Their dot product becomes a compatibility score. I like the economy of that idea, but I wouldn't give the latent dimensions neat human labels without evidence. A learned direction isn't necessarily “how much this person likes action films.”</p>
+        <p>I'd compare these approaches with a popularity baseline before reaching for a sequence model. Popularity is a useful fallback, particularly for a new account. It's also a baseline that can look strong while offering the same small set of titles to everyone.</p>
+
+        <h2>Finding candidates and ordering them are separate jobs</h2>
+        <p>For a large catalogue, carefully scoring every user-item pair on every request becomes expensive. The split that makes sense to me is a fast retrieval stage followed by a more selective ranking stage. Google's <a href="https://research.google/pubs/deep-neural-networks-for-youtube-recommendations/" target="_blank" rel="noopener">YouTube recommendation paper</a> describes this separation between candidate generation and ranking.</p>
+        <p>A two-tower retriever maps the user context and each item into a shared embedding space. Item vectors can be computed ahead of time, so serving mostly involves producing the user vector and looking up nearby items with approximate nearest-neighbor search. A ranker can then spend more effort on the smaller candidate set, using features that depend on the particular user-item pair.</p>
+        <p>The failure I'd watch for is a good item never reaching the ranker. If retrieval misses a niche film completely, a better ranking model can't rescue it. I'd measure candidate recall separately and consider mixing candidates from collaborative, content-based, and popularity sources.</p>
+
+        <h2>A small example of the feedback loop</h2>
+        <p>Imagine a new user watches two action films. We fill the next screen with action, they choose another, and now we have three observations that appear to confirm the preference. But we never offered much else. The model is partly learning the consequences of its own earlier choices.</p>
+        <p>I'd leave some room for discovery, within a set of plausible recommendations. That could mean a small amount of exploration or a bandit policy once the reward and constraints are clear. Completely random suggestions would produce data, but they'd also make the product annoying.</p>
+        <p>New items need similar care. Metadata can get them into the candidate pool, but without exposure they may never collect enough interactions to compete. I'd monitor how recommendation traffic is distributed across the catalogue, rather than judging the system only by how well it serves already-popular items.</p>
+
+        <h2>The metric can reward the wrong experience</h2>
+        <p>Recall@K tells me whether held-out relevant items made the shortlist. NDCG@K also cares where they landed. Both are useful, provided the held-out interactions happen after the training cutoff and the candidate set resembles what the system actually serves.</p>
+        <p>Neither metric tells me whether a person enjoyed the evening. Clicks can reward an attractive thumbnail. Watch time can reward a longer film. I'd pick an online outcome that fits the product, then look at satisfaction signals, repeat use, and catalogue coverage alongside it. An A/B test should have enough time to see beyond the first click.</p>
+        <p>There are serving details I'd want to test too: stale user histories, an out-of-date item index, unavailable titles, and a fallback when personalization fails. The model could be working exactly as trained while those details make its suggestions useless.</p>
+
+        <h2>Where I'd begin</h2>
+        <p>I'd build a popularity baseline, an item-similarity model, and a content-based fallback, then inspect a handful of recommendation lists. Do they repeat the same thing? Do new users get sensible choices? Does a change of interest show up? Those questions would give me a reason to add complexity. A larger model alone wouldn't answer them.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="fraud-detection.html">Next: Fraud Detection →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>

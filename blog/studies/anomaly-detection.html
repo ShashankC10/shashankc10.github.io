@@ -35,39 +35,39 @@
       <header class="post-header">
         <p class="eyebrow">Study note · ML systems</p>
         <h1>Anomaly Detection Starts with Defining Normal</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-07-11">July 11, 2026</time> · 8 min read · companion PDF</p>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-07-11">July 11, 2026</time> · Updated <time datetime="2026-09-29">September 29, 2026</time> · 10 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
         <p class="lede">I went into this study expecting to compare algorithms. I came out convinced the algorithm is the easy part. The real work is deciding what “normal” even means, and what the system should do when normal changes underneath you.</p>
 
-        <p>The example that made anomaly detection click for me is a heart rate monitor: 72, 74, 71, 73, 72, 74, 180. Nobody needs a model to see the last reading is trouble. The whole field is really about teaching a machine that same instinct, for cases that are much less obvious: a credit card used in three countries in an hour, a machine vibrating differently before it breaks, a user adding 500 items to a cart (which usually means a bot).</p>
+        <p>The example I find easiest to picture is a server metric: CPU readings of 45, 47, 46, 45, 98, 46, 45. The spike stands out immediately. Whether it needs a response depends on what the server was doing. Anomaly detection tries to surface patterns worth investigating, including less obvious ones: a machine vibrating differently, a burst of payments, or an unusual sequence of actions in an account.</p>
 
         <h2>Ask the boring questions first</h2>
         <p>Before any modeling, a handful of unglamorous questions decide almost everything downstream:</p>
         <ul>
           <li><strong>What kind of data?</strong> Time series, tabular, or a single snapshot?</li>
-          <li><strong>Labeled or unlabeled?</strong> Most real anomaly problems have no labeled examples at all.</li>
+          <li><strong>Labeled or unlabeled?</strong> Do I have reliable examples of incidents, or mostly a history of ordinary operation?</li>
           <li><strong>How fast does detection need to be?</strong> Real-time while the card is being swiped, or a daily batch report?</li>
           <li><strong>Which mistake costs more?</strong> Missing fraud loses money; a false alarm blocks a legitimate customer.</li>
-          <li><strong>How rare are anomalies?</strong> Usually under 1% of the data, so this is a class imbalance problem in disguise.</li>
+          <li><strong>How rare are anomalies?</strong> The rate depends on what I count as an anomaly. If incidents are scarce, accuracy alone can be misleading.</li>
         </ul>
 
         <h2>Normal is contextual</h2>
-        <p>A value is never anomalous on its own. Ninety percent CPU is fine during weekday traffic and alarming at 3 a.m. A large payment is routine for one account and unprecedented for another. Same number, completely different meaning.</p>
+        <p>A value needs a reference point. Ninety percent CPU might be expected during peak traffic and surprising during a quiet period. A large payment can be routine for one account and unprecedented for another. I'd want that context before deciding whether to flag either one.</p>
         <p>So the first question I've learned to ask isn't “which model?” It's: normal for <em>whom</em>, over <em>which window</em>, under <em>what conditions</em>? The textbook split is worth keeping in mind here:</p>
         <ul>
-          <li><strong>Point anomalies:</strong> one observation is extreme on its own. CPU at 45, 47, 46, 45, 98, 46, 45. The bad point announces itself.</li>
-          <li><strong>Contextual anomalies:</strong> the value is plausible, just not for this entity, time, or state. CPU at 90% at 2 p.m. on a weekday is peak traffic; the same 90% at 3 a.m. on a Sunday is a problem. This is the type that convinced me time-of-day features matter so much.</li>
-          <li><strong>Collective anomalies:</strong> no single point is weird, but the pattern is. CPU pinned at exactly 65% for six hours looks fine value by value, but nothing real is ever that perfectly static. My first guess would be a runaway process.</li>
+          <li><strong>Point anomalies:</strong> one observation is extreme relative to the baseline. CPU at 45, 47, 46, 45, 98, 46, 45 gives me a clear candidate to inspect.</li>
+          <li><strong>Contextual anomalies:</strong> the value is plausible, just unexpected for this entity, time, or state. CPU at 90% may be routine at peak time and unusual overnight, unless a scheduled job explains it.</li>
+          <li><strong>Collective anomalies:</strong> individual values look ordinary, but their pattern is unusual. CPU fixed at exactly 65% for six hours might be worth checking against normal behavior. I'd look for a steady workload or a stuck reporting pipeline before deciding it was an incident.</li>
         </ul>
 
         <h2>What normal looks like, statistically</h2>
-        <p>Before reaching for anything clever, I want the plain statistics of ordinary behavior. The empirical rule says roughly 68% of normal data falls within one standard deviation of the mean, 95% within two, and 99.7% within three. Anything beyond three sigma is genuinely rare; only 0.3% of normal data lives out there. If CPU averages 45% with a standard deviation of 10, a reading of 98% is more than five sigma away. That's an anomaly by any definition.</p>
+        <p>Before reaching for anything clever, I want the plain statistics of ordinary behavior. For a Gaussian distribution, roughly 68% of values fall within one standard deviation of the mean, 95% within two, and 99.7% within three. Here, “normal distribution” is a mathematical assumption, not a synonym for healthy operation. If CPU averages 45% with a standard deviation of 10 percentage points, a reading of 98% is 5.3 standard deviations away. That is unusual against this baseline, but the baseline still needs to fit the workload.</p>
         <p>The classic z-score, <code>z = (x - μ) / σ</code>, encodes exactly this. But real data is often skewed, and one extreme value can drag the mean. Two robust alternatives kept coming up:</p>
         <ul>
           <li><strong>Modified z-score:</strong> replace mean and standard deviation with the median and MAD (median absolute deviation), which one outlier can't drag around: <code>0.6745 × (x - median) / MAD</code>.</li>
-          <li><strong>IQR method:</strong> flag anything below <code>Q1 - 1.5 × IQR</code> or above <code>Q3 + 1.5 × IQR</code>. No distribution assumptions at all; this is what box plots draw.</li>
+          <li><strong>IQR method:</strong> flag anything below <code>Q1 - 1.5 × IQR</code> or above <code>Q3 + 1.5 × IQR</code>. These box-plot fences don't require a Gaussian distribution, but skew and context still affect whether the flagged values are useful.</li>
         </ul>
         <p>And for multiple features there's <strong>Mahalanobis distance</strong>, which measures how far a point sits from the center while accounting for correlations between features. CPU at 70% is fine, memory at 95% is fine, but the two together may be a combination the system has never produced. A per-feature z-score can't see that; Mahalanobis can.</p>
 
@@ -77,21 +77,26 @@
         <p>This is the part that took me longest to internalize: the definition of normal lives in the features, not the model. A z-score against a global mean and a robust score against a local median are asking different questions before any algorithm gets involved.</p>
         <blockquote>A fancy detector on context-free features loses to a dumb threshold on a well-chosen residual.</blockquote>
 
+        <h2>One reading, two baselines</h2>
+        <p>Here's a toy example I use to check that reasoning. Suppose a service normally runs at 30% CPU overnight and 80% during its afternoon batch job. A global threshold at 75% flags the batch job every day. Raising it to 95% stops the noise, but now an unexpected overnight reading of 70% passes quietly.</p>
+        <p>Instead, I could compare each reading with an expected value for that time and workload. Against an overnight baseline of 30%, a reading of 70% has a residual of 40 percentage points. Against an afternoon baseline of 80%, a reading of 85% has a residual of only five. I'd still need to scale those residuals by ordinary variability, but at least the comparison now reflects the question I meant to ask.</p>
+        <p>For a rolling baseline, I'd calculate the reference from earlier observations, keeping the current point out of its own history. I'd also handle a zero standard deviation or MAD explicitly. Otherwise, the quietest signal can produce an undefined score. Then I'd replay the detector on later periods and inspect both the alerts and the incidents it missed.</p>
+
         <h2>Models encode different assumptions</h2>
         <p>There's no universal anomaly detector, which annoyed me at first and now seems obviously right. Each family defines “unusual” differently, so the job is matching those assumptions to the shape of your data.</p>
         <p><strong>Statistical methods</strong> are the baseline. The three-sigma rule is instant and needs no training, but assumes roughly normal data. CUSUM accumulates small deviations to catch a metric that has shifted to a new level rather than spiked. The analogy that made it stick for me: weighing yourself daily. CUSUM catches a weight that has been quietly trending up all week, not one heavy meal.</p>
-        <p><strong>Unsupervised models</strong> get used the most, simply because labels almost never exist in practice:</p>
+        <p><strong>Unsupervised models</strong> are useful when reliable labels are scarce:</p>
         <ul>
           <li><strong>Isolation Forest:</strong> anomalies are easy to isolate. Normal points sit among neighbors and need many random splits to separate; a lonely point falls out in a few. Fast, works in high dimensions, but treats each point independently, so it's blind to time patterns.</li>
           <li><strong>Local Outlier Factor:</strong> flags points sitting in a sparser neighborhood than their peers. The picture in my head is a party: people clustered in groups, and one person standing alone far from everyone. Good when clusters have different densities, but slow at scale.</li>
-          <li><strong>Autoencoders</strong> (the one I find most interesting): train a network to compress and reconstruct only normal data. When an anomaly shows up, the reconstruction fails and the error spikes. Handles complex multivariate patterns; the LSTM variant adds temporal structure. The cost is needing plenty of normal data, and it's hard to explain <em>why</em> something was flagged.</li>
+          <li><strong>Autoencoders</strong> (the one I find most interesting): train a network to compress and reconstruct representative normal data, then use reconstruction error as a score. Anomalies may reconstruct poorly, but that isn't guaranteed; a flexible network can reconstruct some unusual inputs well too. An LSTM variant adds temporal structure. I'd want enough representative data and a comparison with simpler baselines before relying on it.</li>
           <li><strong>One-Class SVM:</strong> learns a boundary around normal data. Decent on small datasets, fussy about hyperparameters, doesn't scale well.</li>
         </ul>
-        <p><strong>Supervised models</strong> apply in the rare, lucky case where labeled anomalies exist: gradient boosting (XGBoost or LightGBM) with class weights, SMOTE to synthesize minority examples, and evaluation on precision and recall rather than accuracy. A model that always predicts “normal” on 99/1 data scores 99% accuracy and catches zero fraud.</p>
+        <p><strong>Supervised models</strong> are an option when labeled anomalies exist. I'd compare a classifier such as gradient boosting with the simpler detectors and consider class weights during training. I'd be cautious about synthetic oversampling: an interpolation between incidents may not resemble a plausible incident. Evaluation should include precision and recall rather than accuracy alone. A model that always predicts “normal” on 99/1 data scores 99% accuracy and catches zero anomalies.</p>
         <p><strong>Time-series methods</strong> attack the seasonality problem head-on: decompose with STL and flag large residuals once trend and weekly cycles are removed, or fit ARIMA or Prophet and flag points that land outside the forecast interval.</p>
 
         <h2>A threshold is an operating policy</h2>
-        <p>The model gives you a score; the threshold decides what happens next. Which means the final call isn't really a modeling decision at all; it's a product and operations decision. Lower it and you catch more but cry wolf more. Raise it and things get missed, quietly.</p>
+        <p>The model gives you a score; the threshold decides what happens next. That makes the final call a product and operations decision as well as a modeling one. For a score where larger means more anomalous, lowering the threshold sends more cases for review. Some libraries use the opposite direction, so I'd check the scoring convention before tuning anything. The <a href="https://sklearn.org/stable/modules/outlier_detection.html" target="_blank" rel="noopener">scikit-learn outlier-detection guide</a> is useful for keeping those interfaces straight.</p>
         <p>I'd set it based on which mistake hurts more, how fast a response has to happen, and how many alerts a team can honestly look at. The right threshold for blocking a payment has almost nothing to do with the right threshold for a weekly analyst queue. Four questions I'd want answered before setting one:</p>
         <ul>
           <li><strong>Cost:</strong> which mistake is more damaging, a miss or a false alarm?</li>
@@ -102,7 +107,7 @@
         <p>Evaluation has the same honesty problem. Without labels, the options are injecting synthetic anomalies and counting how many get caught, or shipping alerts to humans and tracking what fraction turn out to be real. Neither is perfect. Both beat trusting an unsupervised score at face value.</p>
 
         <h2>Production changes normal</h2>
-        <p>Seasonality, growth, launches, infra changes: everything moves the baseline. A detector that never retrains eventually starts flagging the present just for not being the past. A server that always runs hot from 9 to 5 should not page anyone at noon; either train separate models per context (business hours vs. off-hours) or feed time in as a feature so the model learns that 80% CPU is normal at 2 p.m. For drift, the fix I'd reach for is a rolling training window: learn from the last 30 days, not from all of history.</p>
+        <p>Seasonality, growth, launches, and infrastructure changes can move the baseline. I'd compare behavior within the relevant context and monitor whether the detector's reference period still fits. A rolling training window is one option, but thirty days isn't a universal answer: it can miss longer seasonal cycles or absorb an ongoing incident into “normal.” I'd choose the window against the patterns I need to retain and review what goes into retraining.</p>
         <p>And the failure mode that actually worries me isn't statistical at all. It's alert fatigue. Give engineers 50 alerts a day where most are false alarms and they will start ignoring all of them, including the one that matters. The defenses have to be designed in from the start:</p>
         <ul>
           <li><strong>Group related signals.</strong> CPU, memory, and latency spiking together is one incident, not three alerts.</li>
@@ -120,7 +125,7 @@
 
       <nav class="article-next" aria-label="More notes">
         <a href="../index.html">← All notes</a>
-        <a href="../projects/phonepe-pulse.html">PhonePe Pulse project →</a>
+        <a href="recommendation-systems.html">Next: Recommendation Systems →</a>
       </nav>
     </article>
   </main>

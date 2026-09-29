@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Who Might Leave, and Who Can I Help? | Shashank Chandavarkar</title>
+  <meta name="description" content="Predicting a cancellation doesn&#x27;t tell me whether outreach will help. I worked through observation windows, usage trends, and the difference between churn risk and the effect of an intervention." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="Who Might Leave, and Who Can I Help?" />
+  <meta property="og:description" content="Predicting a cancellation doesn&#x27;t tell me whether outreach will help. I worked through observation windows, usage trends, and the difference between churn risk and the effect of an intervention." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shashankc10.github.io/blog/studies/churn-prediction.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='27' y='27' width='46' height='46' transform='rotate(45 50 50)' fill='%23c2410c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../blog.css">
+</head>
+<body class="blog-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <button id="themeToggle" type="button" aria-label="Toggle dark mode">DARK</button>
+
+  <header class="blog-topbar">
+    <a class="wordmark" href="../../index.html" aria-label="Back to Shashank Chandavarkar's portfolio">SC<span>.</span></a>
+    <nav class="blog-nav" aria-label="Blog navigation">
+      <a href="../index.html">All notes</a>
+      <a href="../../index.html">Portfolio ↗</a>
+    </nav>
+  </header>
+
+  <main id="main" class="article-main">
+    <article>
+      <header class="post-header">
+        <p class="eyebrow">Study note · Churn prediction</p>
+        <h1>Who Might Leave, and Who Can I Help?</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+      </header>
+
+      <div class="article-body">
+        <p class="lede">Knowing someone is likely to leave doesn't tell me whether a discount will make them stay. That's the distinction I find most useful in churn prediction. A risk model can identify a worrying pattern; deciding how to respond requires another kind of evidence.</p>
+
+        <h2>First I need a definition of leaving</h2>
+        <p>Cancellation is fairly concrete for a subscription product. In a shopping app, a quiet month could mean someone has left, or simply that they don't need anything right now. A downgrade is another possibility: the person stays, but the revenue changes.</p>
+        <p>I'd write down the event, the population, and the prediction horizon before assembling features. For a worked setup, suppose I'm scoring active paid accounts at the end of January and predicting cancellations during February. That gives me a clear cutoff and a specific outcome to evaluate.</p>
+        <p>The horizon has to leave time for a useful action. Predicting cancellation minutes before it happens might be accurate while being useless to a customer-success team that needs several days to help.</p>
+
+        <h2>The calendar belongs in the dataset</h2>
+        <p>My January features could include logins, feature use, unresolved support tickets, and billing events known by January 31. February's cancellation request cannot sneak into that snapshot just because it's present in the database when I later build the training table.</p>
+        <pre><code>Observation window: January 1–31
+Prediction made:    end of January 31
+Outcome window:    February 1–28
+
+Features stop at the prediction cutoff.
+Labels need the complete outcome window.</code></pre>
+        <p>I'd also check when each field becomes available. A record with an old event date may only have been ingested later. Point-in-time correctness needs to reflect what the scoring system actually knew, not merely the timestamp the warehouse eventually stores.</p>
+        <p>For validation, I'd move those snapshots forward through time and train only on outcomes available at each simulated training date. Recent accounts without a complete outcome window shouldn't quietly become examples of “didn't churn.” That would reward the model for a labeling mistake.</p>
+
+        <h2>Five logins can mean two different things</h2>
+        <p>A customer who has always logged in five times a week looks different from one who fell from thirty to five. The current count is the same; the direction isn't. I'd use recency and frequency alongside changes over several windows, rather than expecting a single usage total to carry the whole story.</p>
+        <p>Ratios need care when the earlier window contains zero activity. I'd keep the underlying counts and an explicit missing-history flag instead of letting an arbitrary denominator create a dramatic trend. New accounts also need to be distinguished from established accounts whose activity has stopped.</p>
+        <p>Usage breadth, unresolved tickets, renewal dates, and failed payments could all help. I'd inspect them by plan and tenure. A once-a-month workflow may be perfectly healthy for one customer, while the same activity pattern is a sharp decline for another.</p>
+
+        <h2>Risk and timing are different questions</h2>
+        <p>I'd start with logistic regression and compare it with boosted trees on the snapshot dataset. I'd want precision-recall results and lift at the team's actual contact capacity. If the team can call fifty accounts, the quality of those fifty matters more than the quality of a queue nobody can finish.</p>
+        <p>Survival analysis becomes useful when the question is how long an account is likely to remain active. Customers still present when observation ends are right-censored: I know they've stayed at least that long, but not their eventual departure time. The <a href="https://scikit-survival.readthedocs.io/en/stable/user_guide/00-introduction.html" target="_blank" rel="noopener">scikit-survival introduction</a> explains why these incomplete outcomes need special treatment.</p>
+        <p>A Cox model relates features to the hazard, a conditional event rate. I'd be careful with its coefficients. An association between more logins and a lower hazard doesn't establish that asking people to log in more will keep them subscribed. The proportional-hazards assumption also needs checking.</p>
+
+        <h2>The call changes what happens next</h2>
+        <p>Suppose the model flags an account, someone calls, and the customer stays. Was the prediction wrong, or did the call help? That individual outcome can't tell me. The response has changed the very outcome I was trying to predict.</p>
+        <p>This is where I'd separate churn risk from uplift: the estimated change in retention caused by an intervention. A randomized treatment and control comparison is a much stronger starting point than comparing accounts the team chose to call with ones it ignored. Those groups may have been different before anyone picked up the phone.</p>
+        <p>A two-model approach can estimate retention under treatment and under control, then take the difference. The <a href="https://www.pywhy.org/EconML/spec/estimation/metalearners.html" target="_blank" rel="noopener">EconML explanation of T-learners</a> lays out that structure. The models don't eliminate the need for credible treatment assignment or causal assumptions when using observational data.</p>
+        <p>For a toy calculation, suppose an intervention increases retention probability by 0.08, the retained relationship is worth $1,000 in expected contribution over a defined horizon, and outreach costs $20. That's <code>0.08 × 1,000 - 20 = $60</code> in expected incremental value. I wouldn't multiply by churn probability again if the uplift already measures the probability difference.</p>
+
+        <h2>What I'd put in front of the team</h2>
+        <p>I'd show the account's recent changes, the suggested action, and enough context to check whether the recommendation makes sense. A feature attribution can explain a model's score; it doesn't prove why a person wants to leave.</p>
+        <p>The first experiment I'd want is small: one clearly defined intervention, a limited queue, and a randomized holdout where appropriate. I'd measure incremental retention and cost after the outcomes mature. Finding likely churners is useful. I'd want to know whether acting on that information made their experience better enough to stay.</p>
+      </div>
+
+      <nav class="article-next" aria-label="More notes">
+        <a href="../index.html">← All notes</a>
+        <a href="demand-forecasting.html">Next: Demand Forecasting →</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="article-footer">
+    <span>© <span id="year"></span> SHASHANK CHANDAVARKAR</span>
+    <a href="../index.html">Blog index ↑</a>
+  </footer>
+  <button id="toTop" type="button" aria-label="Back to top">↑</button>
+  <script src="../../script.js"></script>
+</body>
+</html>
