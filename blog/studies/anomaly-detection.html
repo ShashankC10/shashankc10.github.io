@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Anomaly Detection Starts with Defining Normal | Shashank Chandavarkar</title>
+  <title>Anomaly Detection Starts with Defining Normal (Anomaly Detection) | Shashank Chandavarkar</title>
   <meta name="description" content="My study notes on anomaly detection: defining normal, engineering contextual features, choosing models, setting thresholds, and surviving production alerting." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="Anomaly Detection Starts with Defining Normal" />
+  <meta property="og:title" content="Anomaly Detection Starts with Defining Normal (Anomaly Detection)" />
   <meta property="og:description" content="Study notes on anomaly detection: the algorithm is the easy part." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/anomaly-detection.html" />
@@ -34,93 +34,123 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · ML systems</p>
-        <h1>Anomaly Detection Starts with Defining Normal</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-07-11">July 11, 2026</time> · Updated <time datetime="2026-09-29">September 29, 2026</time> · 10 min read · companion PDF</p>
+        <h1>Anomaly Detection Starts with Defining Normal (Anomaly Detection)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-07-11">July 11, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 12 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
-        <p class="lede">I went into this study expecting to compare algorithms. I came out convinced the algorithm is the easy part. The real work is deciding what “normal” even means, and what the system should do when normal changes underneath you.</p>
+        <p class="lede">I went into this study expecting to compare algorithms. The question I keep returning to is what “normal” means for the particular system, and what someone should do when a detector says it has changed. The algorithm matters, but it can't settle those questions on its own.</p>
 
-        <p>The example I find easiest to picture is a server metric: CPU readings of 45, 47, 46, 45, 98, 46, 45. The spike stands out immediately. Whether it needs a response depends on what the server was doing. Anomaly detection tries to surface patterns worth investigating, including less obvious ones: a machine vibrating differently, a burst of payments, or an unusual sequence of actions in an account.</p>
+        <h2>Decide what deserves attention</h2>
+        <p>Anomaly detection looks for observations or patterns that differ unexpectedly from a reference. A sequence such as 72, 74, 71, 73, 72, 74, 180 makes the final reading visually obvious. Even then, its meaning depends on the signal, measurement process, and context. A surprising number is a reason to investigate, not a diagnosis.</p>
+        <p>Applications include payment activity across several countries in a short period, CPU or latency changes, unusual manufacturing vibration, abrupt financial-market moves, and a user suddenly adding hundreds of items to a cart. Each could reflect an incident, a legitimate change, or bad telemetry. I'd define which of those outcomes the system is meant to find.</p>
+        <p>Before selecting a model, I'd ask whether the data is a time series, tabular events, or a snapshot; whether reliable incident labels exist; how quickly detection needs to happen; how costly a miss is relative to a false alarm; and how rare the target incidents actually are. If positives are scarce, accuracy can reward a detector that never alerts.</p>
 
-        <h2>Ask the boring questions first</h2>
-        <p>Before any modeling, a handful of unglamorous questions decide almost everything downstream:</p>
+        <h2>Three different ways of being unusual</h2>
+        <p>A <strong>point anomaly</strong> is an individual observation that is extreme against a reference. CPU readings of 45, 47, 46, 45, 98, 46, 45 give a clear candidate to inspect. The point is statistically unusual; the workload still determines whether it's harmful.</p>
+        <p>A <strong>contextual anomaly</strong> is plausible in general but unexpected for this entity, time, or state. Ninety percent CPU might be ordinary during a weekday batch job and surprising at 3 a.m. on Sunday. It could also be a scheduled overnight backup. Time of day helps only when the reference actually represents the workload.</p>
+        <p>A <strong>collective anomaly</strong> is an unusual sequence or group whose individual values need not be extreme. CPU reported as exactly 65% for six hours could deserve attention even if 65% is ordinarily fine. I'd inspect a steady workload, stuck telemetry, rounding, or a process change rather than assume the flat line identifies one cause.</p>
+
+        <h2>Start with a defensible statistical baseline</h2>
+        <p>I'd inspect the mean, spread, shape, and stability of representative normal operation before picking thresholds. For a Gaussian distribution, roughly 68% lies within one standard deviation of the mean, 95% within two, and 99.7% within three. About 0.3% is outside three standard deviations. That probability comes from a distributional assumption, not a universal property of healthy systems.</p>
+        <pre><code>z = (x - μ) / σ
+Three-sigma flag: |x - μ| &gt; 3σ
+
+If μ = 45 and σ = 10:
+  three-sigma interval = [15, 75]
+  z for x = 98 is (98 - 45) / 10 = 5.3</code></pre>
+        <p>CPU is bounded and often seasonal, so this is an illustrative calculation. Skew, heavy tails, or a contaminated reference period can make a three-sigma rule generate the wrong queue. Even a small per-point false-alarm probability can become a large volume across many metrics.</p>
+        <p>Robust alternatives reduce sensitivity to extreme observations:</p>
+        <pre><code>MAD = median(|x_i - median(x)|)
+Modified z = 0.6745 × (x - median(x)) / MAD
+
+Q1 = 25th percentile
+Q3 = 75th percentile
+IQR = Q3 - Q1
+Lower fence = Q1 - 1.5 × IQR
+Upper fence = Q3 + 1.5 × IQR</code></pre>
+        <p>The modified z-score uses the median and median absolute deviation. The scaling constant connects MAD with a Gaussian standard-deviation scale. I'd choose and validate its threshold rather than assume every “z” uses the same cutoff. A zero MAD or standard deviation needs explicit handling.</p>
+        <p>IQR fences are the familiar box-plot rule. They don't require Gaussian data, but that doesn't make every point beyond a fence meaningful. Skew, multiple populations, and context affect how useful the flags are.</p>
+
+        <h2>Relationships can matter more than individual values</h2>
+        <p>CPU at 70% and memory at 95% might each occur in normal operation, yet their combination could be unusual. Mahalanobis distance accounts for covariance between features:</p>
+        <pre><code>D² = (x - μ)ᵀ Σ⁻¹ (x - μ)
+
+x  = vector of observed features
+μ  = baseline mean vector
+Σ  = baseline covariance matrix</code></pre>
+        <p>It generalizes a standardized distance to multiple dimensions. I'd scale and estimate the reference carefully; a singular covariance matrix, outliers in the fit, or several distinct normal clusters can make a simple global distance misleading. An unseen combination isn't necessarily far under this geometry, so I'd test whether it captures the relationships that matter.</p>
+
+        <h2>Give the model the history it needs</h2>
+        <p>For time series, I'd start with a few explicit context features:</p>
         <ul>
-          <li><strong>What kind of data?</strong> Time series, tabular, or a single snapshot?</li>
-          <li><strong>Labeled or unlabeled?</strong> Do I have reliable examples of incidents, or mostly a history of ordinary operation?</li>
-          <li><strong>How fast does detection need to be?</strong> Real-time while the card is being swiped, or a daily batch report?</li>
-          <li><strong>Which mistake costs more?</strong> Missing fraud loses money; a false alarm blocks a legitimate customer.</li>
-          <li><strong>How rare are anomalies?</strong> The rate depends on what I count as an anomaly. If incidents are scarce, accuracy alone can be misleading.</li>
+        <li><strong>Recent level and variability:</strong> rolling mean and standard deviation over the preceding five minutes, or another window matched to the system.</li>
+        <li><strong>Change:</strong> current value minus the value five minutes earlier. Dividing by elapsed time gives a rate of change.</li>
+        <li><strong>Rolling z-score:</strong> distance from the recent mean in units of recent standard deviation.</li>
+        <li><strong>Seasonal comparison:</strong> current latency relative to a baseline for the same hour yesterday, with zero and missing baselines handled.</li>
         </ul>
-
-        <h2>Normal is contextual</h2>
-        <p>A value needs a reference point. Ninety percent CPU might be expected during peak traffic and surprising during a quiet period. A large payment can be routine for one account and unprecedented for another. I'd want that context before deciding whether to flag either one.</p>
-        <p>So the first question I've learned to ask isn't “which model?” It's: normal for <em>whom</em>, over <em>which window</em>, under <em>what conditions</em>? The textbook split is worth keeping in mind here:</p>
-        <ul>
-          <li><strong>Point anomalies:</strong> one observation is extreme relative to the baseline. CPU at 45, 47, 46, 45, 98, 46, 45 gives me a clear candidate to inspect.</li>
-          <li><strong>Contextual anomalies:</strong> the value is plausible, just unexpected for this entity, time, or state. CPU at 90% may be routine at peak time and unusual overnight, unless a scheduled job explains it.</li>
-          <li><strong>Collective anomalies:</strong> individual values look ordinary, but their pattern is unusual. CPU fixed at exactly 65% for six hours might be worth checking against normal behavior. I'd look for a steady workload or a stuck reporting pipeline before deciding it was an incident.</li>
-        </ul>
-
-        <h2>What normal looks like, statistically</h2>
-        <p>Before reaching for anything clever, I want the plain statistics of ordinary behavior. For a Gaussian distribution, roughly 68% of values fall within one standard deviation of the mean, 95% within two, and 99.7% within three. Here, “normal distribution” is a mathematical assumption, not a synonym for healthy operation. If CPU averages 45% with a standard deviation of 10 percentage points, a reading of 98% is 5.3 standard deviations away. That is unusual against this baseline, but the baseline still needs to fit the workload.</p>
-        <p>The classic z-score, <code>z = (x - μ) / σ</code>, encodes exactly this. But real data is often skewed, and one extreme value can drag the mean. Two robust alternatives kept coming up:</p>
-        <ul>
-          <li><strong>Modified z-score:</strong> replace mean and standard deviation with the median and MAD (median absolute deviation), which one outlier can't drag around: <code>0.6745 × (x - median) / MAD</code>.</li>
-          <li><strong>IQR method:</strong> flag anything below <code>Q1 - 1.5 × IQR</code> or above <code>Q3 + 1.5 × IQR</code>. These box-plot fences don't require a Gaussian distribution, but skew and context still affect whether the flagged values are useful.</li>
-        </ul>
-        <p>And for multiple features there's <strong>Mahalanobis distance</strong>, which measures how far a point sits from the center while accounting for correlations between features. CPU at 70% is fine, memory at 95% is fine, but the two together may be a combination the system has never produced. A per-feature z-score can't see that; Mahalanobis can.</p>
-
-        <h2>Features come before models</h2>
-        <p>A raw value rarely carries enough context on its own. For time series, that means rolling means and variance, rate of change, distance from a recent baseline: features that ask the temporal question explicitly. The single feature I'd keep if I could only have one is the rolling z-score, how many standard deviations the current point sits from <em>recent</em> normal.</p>
-        <p>For user behavior it means comparing an amount to <em>that user's</em> history, not to everyone's, plus things like time since the last transaction, transaction velocity in the past hour, and whether the country or device is new.</p>
-        <p>This is the part that took me longest to internalize: the definition of normal lives in the features, not the model. A z-score against a global mean and a robust score against a local median are asking different questions before any algorithm gets involved.</p>
-        <blockquote>A fancy detector on context-free features loses to a dumb threshold on a well-chosen residual.</blockquote>
+        <pre><code>delta = x_t - x_(t-5min)
+rolling_z = (x_t - preceding_window_mean)
+            / preceding_window_std
+latency_ratio = current_latency
+                / baseline_same_hour_yesterday</code></pre>
+        <p>For transactions or account activity, I'd compare amount with the user's earlier average, calculate time since the last transaction and transactions in the past hour, and include new-country and new-device indicators. Three transactions in ten seconds can be informative; it can also be a retry bug. I'd inspect the events behind the count.</p>
+        <p>Past-only features must exclude the current outcome and future observations. A model that scores independent rows can still use time through engineered features; it doesn't discover order that isn't represented in its input.</p>
 
         <h2>One reading, two baselines</h2>
-        <p>Here's a toy example I use to check that reasoning. Suppose a service normally runs at 30% CPU overnight and 80% during its afternoon batch job. A global threshold at 75% flags the batch job every day. Raising it to 95% stops the noise, but now an unexpected overnight reading of 70% passes quietly.</p>
-        <p>Instead, I could compare each reading with an expected value for that time and workload. Against an overnight baseline of 30%, a reading of 70% has a residual of 40 percentage points. Against an afternoon baseline of 80%, a reading of 85% has a residual of only five. I'd still need to scale those residuals by ordinary variability, but at least the comparison now reflects the question I meant to ask.</p>
-        <p>For a rolling baseline, I'd calculate the reference from earlier observations, keeping the current point out of its own history. I'd also handle a zero standard deviation or MAD explicitly. Otherwise, the quietest signal can produce an undefined score. Then I'd replay the detector on later periods and inspect both the alerts and the incidents it missed.</p>
+        <p>Suppose a service normally runs at 30% CPU overnight and 80% during its afternoon job. A global threshold of 75% alerts every afternoon. Raising it to 95% stops those alerts but misses an unexpected overnight reading of 70%.</p>
+        <p>Against the overnight baseline, 70% has a residual of forty percentage points. Against the afternoon baseline, 85% has a residual of five. I'd still account for ordinary variability in each context, but now the comparison reflects the question I meant to ask. I'd calculate the reference from earlier data and replay it on later periods before deciding how many of those residuals should page someone.</p>
 
-        <h2>Models encode different assumptions</h2>
-        <p>There's no universal anomaly detector, which annoyed me at first and now seems obviously right. Each family defines “unusual” differently, so the job is matching those assumptions to the shape of your data.</p>
-        <p><strong>Statistical methods</strong> are the baseline. The three-sigma rule is instant and needs no training, but assumes roughly normal data. CUSUM accumulates small deviations to catch a metric that has shifted to a new level rather than spiked. The analogy that made it stick for me: weighing yourself daily. CUSUM catches a weight that has been quietly trending up all week, not one heavy meal.</p>
-        <p><strong>Unsupervised models</strong> are useful when reliable labels are scarce:</p>
-        <ul>
-          <li><strong>Isolation Forest:</strong> anomalies are easy to isolate. Normal points sit among neighbors and need many random splits to separate; a lonely point falls out in a few. Fast, works in high dimensions, but treats each point independently, so it's blind to time patterns.</li>
-          <li><strong>Local Outlier Factor:</strong> flags points sitting in a sparser neighborhood than their peers. The picture in my head is a party: people clustered in groups, and one person standing alone far from everyone. Good when clusters have different densities, but slow at scale.</li>
-          <li><strong>Autoencoders</strong> (the one I find most interesting): train a network to compress and reconstruct representative normal data, then use reconstruction error as a score. Anomalies may reconstruct poorly, but that isn't guaranteed; a flexible network can reconstruct some unusual inputs well too. An LSTM variant adds temporal structure. I'd want enough representative data and a comparison with simpler baselines before relying on it.</li>
-          <li><strong>One-Class SVM:</strong> learns a boundary around normal data. Decent on small datasets, fussy about hyperparameters, doesn't scale well.</li>
-        </ul>
-        <p><strong>Supervised models</strong> are an option when labeled anomalies exist. I'd compare a classifier such as gradient boosting with the simpler detectors and consider class weights during training. I'd be cautious about synthetic oversampling: an interpolation between incidents may not resemble a plausible incident. Evaluation should include precision and recall rather than accuracy alone. A model that always predicts “normal” on 99/1 data scores 99% accuracy and catches zero anomalies.</p>
-        <p><strong>Time-series methods</strong> attack the seasonality problem head-on: decompose with STL and flag large residuals once trend and weekly cycles are removed, or fit ARIMA or Prophet and flag points that land outside the forecast interval.</p>
+        <h2>Catch a sustained shift with CUSUM</h2>
+        <p>A single threshold can miss a small change that persists. An upward CUSUM accumulates deviations above a reference allowance:</p>
+        <pre><code>S_t = max(0, S_(t-1) + (x_t - μ - k))
+Alert if S_t &gt; h</code></pre>
+        <p>Here <code>μ</code> is the reference mean, <code>k</code> is an allowance related to the shift of interest, and <code>h</code> is the decision threshold. A downward counterpart can detect sustained decreases. The intuition is a metric that stays a little high for many readings eventually accumulating enough evidence. I'd tune it against the desired detection delay and false-alarm rate, not merely pick a large-looking cumulative sum.</p>
 
-        <h2>A threshold is an operating policy</h2>
-        <p>The model gives you a score; the threshold decides what happens next. That makes the final call a product and operations decision as well as a modeling one. For a score where larger means more anomalous, lowering the threshold sends more cases for review. Some libraries use the opposite direction, so I'd check the scoring convention before tuning anything. The <a href="https://sklearn.org/stable/modules/outlier_detection.html" target="_blank" rel="noopener">scikit-learn outlier-detection guide</a> is useful for keeping those interfaces straight.</p>
-        <p>I'd set it based on which mistake hurts more, how fast a response has to happen, and how many alerts a team can honestly look at. The right threshold for blocking a payment has almost nothing to do with the right threshold for a weekly analyst queue. Four questions I'd want answered before setting one:</p>
-        <ul>
-          <li><strong>Cost:</strong> which mistake is more damaging, a miss or a false alarm?</li>
-          <li><strong>Latency:</strong> does this need real-time action or batch review?</li>
-          <li><strong>Capacity:</strong> how many alerts can people actually assess?</li>
-          <li><strong>Feedback:</strong> how will resolved cases retune the policy?</li>
-        </ul>
-        <p>Evaluation has the same honesty problem. Without labels, the options are injecting synthetic anomalies and counting how many get caught, or shipping alerts to humans and tracking what fraction turn out to be real. Neither is perfect. Both beat trusting an unsupervised score at face value.</p>
+        <h2>How the unsupervised models define unusual</h2>
+        <p><strong>Isolation Forest</strong> repeatedly chooses random features and split points. Observations isolated after relatively few splits have shorter average path lengths and can receive higher anomaly scores. The original score uses a normalized exponential transform, not simply one divided by path length:</p>
+        <pre><code>s(x, n) = 2^(-E[h(x)] / c(n))
 
-        <h2>Production changes normal</h2>
-        <p>Seasonality, growth, launches, and infrastructure changes can move the baseline. I'd compare behavior within the relevant context and monitor whether the detector's reference period still fits. A rolling training window is one option, but thirty days isn't a universal answer: it can miss longer seasonal cycles or absorb an ongoing incident into “normal.” I'd choose the window against the patterns I need to retain and review what goes into retraining.</p>
-        <p>And the failure mode that actually worries me isn't statistical at all. It's alert fatigue. Give engineers 50 alerts a day where most are false alarms and they will start ignoring all of them, including the one that matters. The defenses have to be designed in from the start:</p>
-        <ul>
-          <li><strong>Group related signals.</strong> CPU, memory, and latency spiking together is one incident, not three alerts.</li>
-          <li><strong>Use severity levels.</strong> “Wake me up now” and “email me in the morning” are different products.</li>
-          <li><strong>Start conservatively.</strong> A small queue people trust beats a flood of weak flags.</li>
-          <li><strong>Keep outcomes.</strong> Human review of resolved alerts is the evidence you need to retune thresholds and features.</li>
-        </ul>
+E[h(x)] = average isolation path length
+c(n)    = normalization for sample size n</code></pre>
+        <p>It's a useful tabular baseline and can be computationally efficient. Many irrelevant dimensions can still make detection difficult. It scores the supplied feature vectors, so sequence effects need lag features, residuals, or another representation. Library score signs vary; the <a href="https://scikit-learn.org/1.5/modules/generated/sklearn.ensemble.IsolationForest.html" target="_blank" rel="noopener">IsolationForest documentation</a> explains its interface and path-length interpretation.</p>
+        <p><strong>Local Outlier Factor (LOF)</strong> compares local reachability density with that of neighboring observations. A score near one suggests similar local density; a substantially larger score suggests the point is sparse relative to its neighbors. It can distinguish local anomalies in populations with different densities. Nearest-neighbor search, feature scaling, and neighborhood size all matter, especially at scale. Scoring new unseen observations also needs the implementation's novelty-detection mode where applicable.</p>
+        <p><strong>Autoencoders</strong> learn to compress and reconstruct representative normal data. For example, an input of [CPU 45%, memory 60%, latency 200 ms] might reconstruct as [44%, 61%, 201 ms]. A small scaled reconstruction error is expected for familiar patterns; a large error can be an anomaly signal.</p>
+        <pre><code>latent = encoder(input)
+reconstruction = decoder(latent)
+score = mean((scaled_input - reconstruction)²)</code></pre>
+        <p>Scaling matters because milliseconds and percentages shouldn't compete accidentally. The network can handle complex multivariate inputs, including sequences or images with suitable architectures, but it may also reconstruct some anomalies well. An LSTM autoencoder introduces temporal structure. I'd compare it with simpler baselines, check contamination in training, and remember that reconstruction error rarely explains the cause of an incident.</p>
+        <p><strong>One-Class SVM</strong> learns a boundary around a reference distribution, commonly by separating the mapped observations from the origin in a kernel feature space. It can work for smaller datasets, but kernel choice, scaling, and hyperparameters such as <code>nu</code> matter. Kernel implementations can be expensive on large datasets; alternatives with different scalability exist.</p>
 
-        <h2>How I'd talk through a problem like this</h2>
-        <p>If someone handed me an anomaly detection problem tomorrow, I'd start with the boring questions: labeled or unlabeled, real-time or batch, and which mistake costs more. I'd build rolling statistics like z-scores and rates of change, decompose any time series and watch the residuals, and lean hard on context features like hour of day. Isolation Forest as the baseline; an LSTM autoencoder if sequences matter; LightGBM with class weights if labels exist, judged on precision and recall. And I'd plan for alert fatigue from day one, with a conservative threshold and a feedback loop from real outcomes.</p>
+        <h2>Use labels when they are trustworthy</h2>
+        <p>If incident labels exist, I'd compare supervised models such as XGBoost or LightGBM with unsupervised scores. A classifier can learn the anomalies represented by those labels, but might miss a new kind of incident. On data with 99% normal observations, an always-normal model gets 99% accuracy and detects nothing.</p>
+        <p>Class weights change the training penalty assigned to positive examples. A weight of one hundred is a modeling choice, not automatically an accurate statement of business cost. SMOTE synthesizes minority examples by interpolation; I'd check whether those combinations are meaningful for the data, use it only within training folds, and evaluate on untouched future observations.</p>
 
-        <h2>The full write-up</h2>
-        <p>My complete notes are in the PDF: anomaly types, feature examples, statistical baselines, model tradeoffs, evaluation, seasonality, drift, and production alerting, with more detail than made sense to put on this page. <a href="../../assets/studies/anomaly-detection-study-discussion.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/anomaly-detection-study-discussion.pdf" download>download a copy</a>.</p>
+        <h2>For time series, model the expected pattern first</h2>
+        <p>STL separates <code>y_t = trend_t + seasonal_t + residual_t</code>. I'd inspect the residual for unexplained changes rather than flag predictable daily peaks. A three-sigma residual threshold is one candidate if its assumptions fit. Residuals aren't guaranteed to be independent Gaussian noise, and a decomposition fitted using future observations would leak information into a simulated online detector.</p>
+        <p>ARIMA or Prophet can produce forecasts with prediction intervals. If the predicted CPU is 45% and a chosen interval is [35%, 55%], an observed 92% lies outside it and becomes a candidate for review. That is a prediction interval for a future observation, not a confidence interval for a mean. A nominal 99% interval needs coverage checks and still permits misses by design.</p>
+        <p>My model shortlist would follow the available evidence: a supervised classifier for reliable labels, STL residuals for a seasonal baseline, a forecasting model when intervals matter, Isolation Forest for unlabeled tabular data, an autoencoder when multivariate reconstruction is useful, a sequence model for patterns over time, or One-Class SVM for a suitable smaller reference set. I'd evaluate each against the actual incident types rather than designate one as the most accurate in advance.</p>
+
+        <h2>Evaluate the queue as well as the score</h2>
+        <pre><code>Precision = true alerts / all alerts
+Recall = detected incidents / all labeled incidents
+F1 = 2 × precision × recall / (precision + recall)</code></pre>
+        <p>With labels, I'd use temporal validation, precision-recall curves, and an appropriate PR summary such as average precision. I'd also define whether matching is point-based or incident-based: twenty alerts during one outage aren't twenty separately detected incidents. Detection delay matters when a correct alert arrives too late.</p>
+        <p>Without labels, synthetic injections can test whether the detector catches the patterns I deliberately introduce, but don't prove real-world recall. Human review estimates how useful the alert queue is; it doesn't reveal incidents outside that queue. I'd inspect samples of unflagged periods too and retain uncertainty about the unknown ground truth.</p>
+        <p>For a score where larger means more anomalous, lowering the threshold increases the alert set and can improve recall while adding false alarms. Precision needn't change monotonically at every step. Some tools reverse score direction, so I'd check the <a href="https://sklearn.org/stable/modules/outlier_detection.html" target="_blank" rel="noopener">outlier-detection interface</a> before tuning thresholds.</p>
+        <p>The choice depends on the cost of a miss, required response time, reviewer capacity, and feedback. I'd start conservatively where appropriate and validate the queue people can actually handle, rather than choose a threshold just because it flags a tidy percentage.</p>
+
+        <h2>Plan for online state and changing normal</h2>
+        <p>Real-time detection scores arriving events within a latency budget. Batch detection can inspect windows for a daily review and may afford heavier sequence models. A z-score or Isolation Forest can be fast at scoring, but rolling means and velocity features still require state. “Fast model” doesn't mean “stateless system.”</p>
+        <p>I'd represent seasonality through a contextual baseline, separate models where there is enough data, or time and workload features. A server regularly busy from 9 to 5 shouldn't page someone solely because noon is busy. Whether a particular model uses those context features well must be checked.</p>
+        <p>Growth, launches, and infrastructure changes can shift the reference. A rolling thirty-day training window is one possible response, but could lose annual seasonality or absorb an ongoing incident. I'd monitor behavior, review what enters the training set, and choose the window against the time scales I need to preserve.</p>
+        <p>Alert fatigue needs explicit design. Fifty noisy alerts a day can destroy trust. I'd group related CPU, memory, and latency changes when evidence supports a common incident, separate urgent severity from a morning-review queue, and record resolutions. Correlation can suggest shared context; it doesn't prove a shared root cause. Those outcomes should inform thresholds, features, and retraining.</p>
+
+        <h2>How I'd explain my first pass</h2>
+        <p>I'd define the incident and its cost, establish whether labels exist, and build a context-aware statistical baseline. Then I'd compare suitable detectors, replay them on later periods, inspect both alerts and misses, and agree on the response policy. The system has to keep working as normal changes, and the people receiving its alerts need a reason to trust them.</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/anomaly-detection-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/anomaly-detection-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">

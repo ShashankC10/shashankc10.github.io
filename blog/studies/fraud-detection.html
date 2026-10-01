@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fraud Detection Has to Make a Decision | Shashank Chandavarkar</title>
+  <title>Fraud Detection Has to Make a Decision (Fraud Detection) | Shashank Chandavarkar</title>
   <meta name="description" content="A fraud score has to become an approval, a verification step, or a decline. I wanted to understand how costs, delayed labels, and ordinary customer behavior change that decision." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="Fraud Detection Has to Make a Decision" />
+  <meta property="og:title" content="Fraud Detection Has to Make a Decision (Fraud Detection)" />
   <meta property="og:description" content="A fraud score has to become an approval, a verification step, or a decline. I wanted to understand how costs, delayed labels, and ordinary customer behavior change that decision." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/fraud-detection.html" />
@@ -34,45 +34,95 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · Fraud detection</p>
-        <h1>Fraud Detection Has to Make a Decision</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+        <h1>Fraud Detection Has to Make a Decision (Fraud Detection)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 10 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
         <p class="lede">A fraud score has to turn into something: let the payment through, ask the customer to verify it, or decline it. That's what makes this problem feel different from an ordinary classification exercise. A false positive happens to someone who was trying to buy something.</p>
 
-        <h2>Start with the decision</h2>
-        <p>I'm using card payments as the example here. Insurance claims, account takeovers, and return fraud have different evidence and response times, so I'd resist treating them as one interchangeable problem.</p>
-        <p>For a payment, I'd first ask how long the system has to respond, what a missed fraud costs, and what options exist between approval and rejection. A verification step gives the system a way to handle uncertainty, though it brings friction of its own.</p>
-        <p>Accuracy is a poor starting metric when fraud is rare. In a toy set of 100,000 payments containing 200 frauds, approving everything gets 99.8% accuracy. It also catches none of the fraud. I'd rather see the number of fraudulent payments caught beside the number of legitimate customers interrupted.</p>
+        <h2>Start with the decision and the adversary</h2>
+        <p>Fraud detection covers card payments, account takeovers, returns, insurance claims, advertising bots, and fraudulent app installs. They share the problem of deceptive behavior, but not the same evidence or deadline. A payment authorization may have a tight real-time budget; an insurance investigation can use a slower batch process.</p>
+        <p>I'd clarify the fraud type, scoring latency, available labels, and the costs of missed fraud and false alarms. I'd also ask which actions are available. Verification and investigator review give the system alternatives to immediate approval or rejection.</p>
+        <p>The adversarial part changes the lifecycle. Once a pattern is blocked, attackers can change timing, amounts, merchants, or devices. A model can become less useful even if the application and data pipeline haven't changed. That makes recent outcomes and investigation feedback important.</p>
 
-        <h2>History makes a transaction interpretable</h2>
-        <p>A large purchase alone doesn't tell me enough. I'd compare the amount with the account's past spending, look at whether the device and merchant are familiar, and check how many attempts happened recently. A burst of declined payments followed by a new purchase might deserve a different score from one isolated large order.</p>
-        <p>The window matters. Counts over the last few minutes answer a different question from counts over the last day. I'd build both where useful, making sure that historical features contain only events available before the payment decision. A later chargeback or investigator verdict belongs in the label, not in a feature pretending to be historical.</p>
-        <p>Location and device signals need restraint. An apparent jump between countries could reflect payment routing or imperfect geolocation. A shared device might belong to a household. I'd treat those as pieces of evidence and inspect their errors, rather than writing a rule that equates unfamiliarity with fraud.</p>
+        <h2>Rare events make accuracy misleading</h2>
+        <p>In an illustrative population with 200 fraudulent payments among 100,000 transactions, approving everything achieves 99.8% accuracy and catches no fraud. Rates such as 0.1% or 2% represent quite different workloads; I'd estimate the prevalence for the actual product, time period, and label definition.</p>
+        <p>I'd explore amount, local time, merchant category, and velocity. Small test charges and large attempted withdrawals are patterns worth looking for, but neither establishes a universal fraud distribution. A $1 payment could be ordinary, and a $3,000 purchase could be legitimate. Electronics, jewelry, gift cards, and transfers are categories to inspect, not labels. Nor would I assume every market's fraud peaks between 3 and 5 a.m.</p>
+        <p>The sequence can add information that the individual amounts lack. Compare a hypothetical day with coffee at 8 a.m., lunch at noon, and groceries at 6 p.m. against four attempts at 3:01, 3:03, 3:05, and 3:07, for $200, $800, $500, and $2,000. That burst deserves investigation. It still needs context: a batch of legitimate purchases or duplicated events can also look busy.</p>
 
-        <h2>What a threshold actually assumes</h2>
-        <p>A simplified cost calculation helps me understand the threshold. Suppose allowing a fraudulent payment costs $500, blocking a legitimate one costs $30, and the other two outcomes cost nothing. Let <code>p</code> be a calibrated estimate of fraud probability.</p>
-        <pre><code>Expected cost of allowing = 500 × p
+        <h2>Build the history around each transaction</h2>
+        <p>I'd organize the feature set into a few groups, keeping every historical value strictly available before the decision:</p>
+        <ul>
+        <li><strong>Transaction:</strong> amount, merchant category, country, hour, and an international flag relative to the account's usual geography.</li>
+        <li><strong>Personal baseline:</strong> amount relative to the preceding thirty-day mean and historical maximum, plus whether the merchant is new. A $5,000 transaction means something different for an account usually spending $20 than for one with a long history of large purchases.</li>
+        <li><strong>Velocity:</strong> transactions and declines in the last hour, unique countries in the last day, and shorter sliding windows where quick bursts matter.</li>
+        <li><strong>Device and network:</strong> a new-device flag, network characteristics such as VPN or Tor use, and the number of accounts associated with a device.</li>
+        <li><strong>Graph relationships:</strong> links among accounts, devices, and merchants, including counts of previously confirmed fraud accounts sharing a device and distance to a known fraud node.</li>
+        </ul>
+        <p>I'd guard against zero denominators and missing history rather than invent extreme ratios. A device shared by several people might belong to a household, and VPN use has legitimate explanations. Connections should contribute evidence; they aren't proof.</p>
+        <p>“Impossible travel” is another useful but imperfect feature. Two apparent in-person transactions in New York and London, about 5,570 km apart, within forty-five minutes conflict with physical travel. But merchant geography, payment routing, time zones, remote purchases, and geolocation errors can break that interpretation. I'd establish what the location field measures before using distance divided by elapsed time.</p>
+        <p>Historical graph features need a time cutoff too. If an account was only confirmed fraudulent next week, today's feature must not act as though that verdict was already known.</p>
+
+        <h2>Bayes keeps the base rate in the calculation</h2>
+        <p>A suspicious signal isn't the same as a high posterior probability. Bayes' theorem relates the likelihood of the evidence under fraud to the prior fraud rate:</p>
+        <pre><code>P(fraud | x) = P(x | fraud) × P(fraud) / P(x)
+
+Posterior odds = likelihood ratio × prior odds
+Likelihood ratio = P(x | fraud) / P(x | legitimate)</code></pre>
+        <p>With a 0.2% prior, prior odds are <code>0.002 / 0.998</code>. A likelihood ratio of 50 gives posterior odds of about 0.1002, or a probability of roughly 9.1%. The signal is strong relative to the prior, but the event is still far from certain. “Fifty times suspicious” only supports that calculation if it really means a likelihood ratio.</p>
+
+        <h2>Derive the threshold from explicit costs</h2>
+        <p>Suppose allowing fraud costs $500, declining a legitimate payment costs $30, and the other outcomes cost nothing. This deliberately simplified example gives a useful threshold calculation:</p>
+        <pre><code>p = calibrated fraud probability
+Expected cost of allowing = 500 × p
 Expected cost of blocking = 30 × (1 - p)
 
 Block when 500 × p &gt; 30 × (1 - p)
-So p &gt; 30 / 530, about 5.7%</code></pre>
-        <p>Those are illustrative costs, not a recommended threshold. Real costs vary by transaction, and verification introduces another action to compare. Still, the example shows why 0.5 isn't a special business boundary.</p>
-        <p>It also depends on <em>p</em> meaning what I think it means. Ranking fraud above legitimate payments doesn't automatically produce reliable probabilities. I'd check calibration on held-out data with a representative fraud rate, especially after changing class weights or sampling. The <a href="https://scikit-learn.org/stable/modules/calibration.html" target="_blank" rel="noopener">scikit-learn calibration guide</a> explains this distinction and how reliability diagrams expose it.</p>
+Therefore p &gt; 30 / 530 ≈ 5.7%</code></pre>
+        <p>Those costs aren't a recommended policy. Real losses, recovery rates, customer friction, and verification costs vary. Higher-value transactions may justify a lower probability threshold if the expected loss rises while other costs stay similar. I'd derive that relationship rather than declare that every transaction over $5,000 needs the same treatment.</p>
+        <p>A score that ranks cases well may still be poorly calibrated. I'd check whether cases scored near 0.1 are fraudulent roughly 10% of the time on representative held-out data. Class weighting and sampling can affect probability estimates. The <a href="https://scikit-learn.org/stable/modules/calibration.html" target="_blank" rel="noopener">scikit-learn calibration guide</a> explains reliability diagrams and the distinction between discrimination and calibration.</p>
 
-        <h2>A model I'd be willing to debug</h2>
-        <p>I'd keep a small, understandable rules baseline and compare logistic regression with a boosted-tree model. Trees can capture interactions between amount, device history, and velocity without requiring a sequence model immediately.</p>
-        <p>Class weighting or undersampling may help during training, but I'd leave validation representative of the traffic the model will face. Synthetic oversampling deserves particular care here: interpolating two fraud examples can create a transaction that makes no sense. I'd want evidence that it helps before adding it.</p>
-        <p>Graph features become interesting when linked accounts and devices contain evidence that a single transaction misses. Even then, I'd start by checking a few explicit relationship features before committing to a graph neural network. Sharing a connection with a flagged account isn't proof of wrongdoing.</p>
+        <h2>Compare rules, linear models, and trees</h2>
+        <p><strong>Rules</strong> make a useful reference system: an amount ten times the user's recent average, five attempts in an hour, an unfamiliar international merchant, or a known malicious IP could trigger review. I'd validate each rule and its action, not automatically block every match. Rules are fast and inspectable, but brittle, maintainable only up to a point, and open to adaptation.</p>
+        <p><strong>Logistic regression</strong> combines features into log-odds and converts them to a probability:</p>
+        <pre><code>z = bias + w₁ × amount + w₂ × new_country
+         + w₃ × velocity + ...
+P(fraud) = sigmoid(z) = 1 / (1 + exp(-z))</code></pre>
+        <p>A hypothetical coefficient of +2.3 on a new-country indicator increases modeled log-odds, while -1.5 on a familiar-merchant indicator reduces them, holding the other features fixed. Scale, correlated inputs, and interactions affect interpretation. Coefficients explain the fitted relationship, not a causal mechanism or a complete decision rationale.</p>
+        <p><strong>XGBoost and LightGBM</strong> build trees sequentially to improve the training objective. They can capture interactions such as an unusual amount combined with a new device. A positive-class weight based on <code>n_legitimate / n_fraud</code> is a starting experiment, not necessarily the best setting. I'd tune using the intended operating metric and check calibration afterward.</p>
+        <p>SHAP values can help investigators understand which inputs moved a particular model score relative to a reference. They don't by themselves establish legal compliance, causal explanations, or appropriate wording for a customer. I'd keep internal investigative detail separate from clear, useful customer guidance.</p>
 
-        <h2>The labels arrive after the decision</h2>
-        <p>This is the production detail I find easiest to underestimate. Some fraud is confirmed much later. If I label every recent payment without a complaint as legitimate, I may just be measuring which cases haven't been resolved yet.</p>
-        <p>I'd evaluate on later periods whose outcomes have had time to mature. Precision-recall curves help with model comparison; at the chosen operating point, I'd also report fraud value missed, legitimate declines, verification volume, and the workload sent to reviewers. A single F1 score doesn't describe all of those costs.</p>
-        <p>Serving needs its own checks. Feature lookups can fail, event streams can lag, and retries can accidentally inflate velocity counts. I'd measure end-to-end tail latency and agree on fallback behavior for missing evidence. A fast model doesn't make the whole decision path fast.</p>
+        <h2>Handle imbalance without distorting the test</h2>
+        <p>Class weights are one option. Undersampling reduces the legitimate examples used in training, trading volume for possible information loss. An ensemble can train models on different subsets and average their predictions; fifty such models is a possible experiment, not a required architecture.</p>
+        <p>SMOTE interpolates between minority examples to synthesize training observations. In fraud data, that can create implausible combinations of transaction amount, merchant, and device features. I'd compare it carefully with weighting, and apply any sampling only within training folds. Validation and test sets should preserve the deployment distribution and temporal order.</p>
 
-        <h2>What would convince me it works?</h2>
-        <p>I'd want better outcomes on future traffic, a manageable review queue, and errors that the team can investigate. I'd also keep watching for changing behavior, since adversaries can respond to the system. Retraining may be part of that response, but so might fixing a delayed feed or retiring a rule that now blocks too many legitimate customers. The score is only useful if the decision around it holds up.</p>
+        <h2>When sequences and graphs earn their complexity</h2>
+        <p>An LSTM can learn from a sequence of transactions rather than only aggregated counts. A supervised sequence classifier may recognize patterns associated with fraud; a reconstruction-based detector might instead flag deviations. An unusual sequence isn't automatically malicious, so the objective and labels still matter.</p>
+        <p>A graph neural network passes information along account-device-merchant edges. With two local message-passing rounds, a node can receive information from up to two hops away. That may expose coordinated behavior missed by isolated transaction features. It also introduces graph freshness, label leakage, shared-device ambiguity, and additional serving complexity. I'd first test whether simple graph features already deliver the benefit.</p>
+
+        <h2>Evaluate the actual operating point</h2>
+        <pre><code>Precision = TP / (TP + FP)
+Recall    = TP / (TP + FN)
+F1        = 2 × precision × recall / (precision + recall)
+False positive rate = FP / (FP + TN)
+Miss rate = FN / (TP + FN) = 1 - recall</code></pre>
+        <p>Precision is the share of flagged cases that are fraud. It is not the false-positive rate, which uses all legitimate cases as its denominator. Recall is the share of fraud caught. F1 balances precision and recall but doesn't incorporate transaction value or the full cost of customer friction.</p>
+        <p>A precision-recall curve and its area are useful with rare positives. I'd state whether I report average precision or trapezoidal PR area, since they aren't identical. Alongside that, I'd report fraud dollars missed, legitimate declines, verification volume, and reviewer workload at the selected thresholds.</p>
+        <p>Labels can arrive long after a payment. A recent transaction with no complaint isn't necessarily confirmed legitimate. I'd use later evaluation periods with sufficiently mature outcomes, tracking the delay and selection effects in investigator labels. Blocked transactions also create missing counterfactuals: I don't observe what would have happened had they been approved.</p>
+
+        <h2>Budget the complete decision path</h2>
+        <p>Suppose the product sets a 300 ms deadline. An illustrative budget might allow 10 ms for historical features from Redis, 20 ms for velocity features, 5 ms for rules, 15 ms for model inference, and 5 ms for the decision policy. Those components sum to 55 ms, or roughly 60 ms after small overheads. The remaining budget must cover network variation, serialization, queues, and other work. These are planning numbers, not measured guarantees.</p>
+        <p>I'd measure P95 and P99 end-to-end latency, not just an isolated cache operation. Redis can support fast serving, but networked requests and failure paths matter. Duplicate events, retries, and delayed streams can corrupt window counts; missing features need an agreed fallback.</p>
+        <p>A three-way policy could approve below threshold A, request step-up verification between A and B, and decline above B. An illustrative score partition is below 0.3, from 0.3 to below 0.7, and at least 0.7. Those numbers are not the cost-derived recommendation above, and shouldn't be copied without calibration and evaluation. Verification might use an OTP or another appropriate method, with its own costs and completion rates.</p>
+
+        <h2>Keep learning after deployment</h2>
+        <p>I'd monitor confirmed fraud capture, losses, false alarms, score distributions, data quality, and latency, accounting for delayed labels. A drop in detection could reflect changing attackers, a data outage, or changing case mix. It should prompt investigation before an automatic retrain.</p>
+        <p>Daily or weekly retraining may be appropriate when enough reliable new outcomes exist. Investigator verdicts help, but the reviewed queue is a selected sample. I'd retain that context in training and evaluation. If attackers move from nighttime jewelry purchases to daytime electronics, I'd want the system to notice without blindly treating all electronics shoppers as suspicious.</p>
+        <p>In a design discussion, I'd explain the decision costs first, then the historical and velocity features, a rules and tree baseline, and the validation setup. I'd add sequences or graphs only for a demonstrated gap. The final test is whether the resulting policy reduces loss while treating legitimate customers reasonably, within the response time the product actually has.</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/fraud-detection-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/fraud-detection-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Search Ranking Begins with the Query | Shashank Chandavarkar</title>
+  <title>Search Ranking Begins with the Query (Search Ranking) | Shashank Chandavarkar</title>
   <meta name="description" content="A popular product can still be the wrong answer. Notes on finding candidates, learning from biased clicks, and checking which searches a new ranker actually improves." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="Search Ranking Begins with the Query" />
+  <meta property="og:title" content="Search Ranking Begins with the Query (Search Ranking)" />
   <meta property="og:description" content="A popular product can still be the wrong answer. Notes on finding candidates, learning from biased clicks, and checking which searches a new ranker actually improves." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/search-ranking.html" />
@@ -34,41 +34,95 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · Search ranking</p>
-        <h1>Search Ranking Begins with the Query</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+        <h1>Search Ranking Begins with the Query (Search Ranking)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 11 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
         <p class="lede">If I search for red running shoes, a popular blue sneaker isn't quite right. A red hiking boot isn't either. That small example captures what interests me about search: the result has to answer this request, even when the catalogue has plenty of things people generally like.</p>
 
-        <h2>Relevance belongs to the query</h2>
-        <p>For these notes, I'm thinking about product search. I'd want to separate the user's constraints from preferences the system can rank around. A specified size might be a hard filter. Popularity could help order the remaining options, but shouldn't quietly override what the person asked for.</p>
-        <p>That makes query-document features especially useful: word overlap, exact product or brand matches, and semantic similarity between the query and the description. Ratings and sales history add context. They can't replace relevance to the query.</p>
-        <p>Query understanding also has room for mistakes. Correcting “runing” is useful; rewriting an unfamiliar product code into an ordinary word may destroy the search. I'd keep exact identifiers intact and test query changes against examples where literal matching matters.</p>
+        <h2>Decide what the search is trying to accomplish</h2>
+        <p>Search ranking orders candidates so the most useful answers appear where people are likely to see them. It shows up in web pages, products, jobs, accommodation listings, songs, and email. I'd clarify the item type, the goal, the available interaction logs or ratings, and whether results should be personalized.</p>
+        <p>Clicks, purchases, and time spent describe different outcomes. A user looking for a known page may be happiest after one quick click. Someone researching a complicated topic may need several documents. A marathon runner and a casual walker might want different results for the same broad shoe query, but explicit constraints should still count.</p>
+        <p>Position matters because people don't inspect every result equally. I wouldn't treat a universal “percentage of users who never leave page one” as a design constant. I'd measure behavior on the actual surface, including mobile layouts and queries with answers directly on the results page.</p>
 
-        <h2>Retrieval sets the ceiling</h2>
-        <p>A ranker can only order what it receives. I'd start by asking whether the retrieval stage finds the right products at all, before measuring how elegantly the model sorts them.</p>
-        <p>BM25 is a useful lexical baseline. It rewards matching terms while accounting for term frequency saturation and document length. Semantic retrieval offers another route when the user and catalogue use different words. I'd try a hybrid candidate set, then inspect which queries benefit from each source.</p>
-        <p>For example, “shoes for a wet trail” may benefit from descriptions mentioning waterproof trail footwear. An exact model number needs a different kind of precision. I wouldn't assume one retrieval method wins across both.</p>
-        <p>At a larger scale, I'd use a cheap retrieval stage followed by a richer ranker. A cross-encoder could compare the query and document together for a small final shortlist if the latency budget allows it. Every additional stage should earn its place in evaluation; a small catalogue might need much less machinery.</p>
+        <h2>Labels are part of the design</h2>
+        <p>Human raters can grade query-document pairs on a scale such as zero to four. That produces explicit relevance judgments, at the cost of time, money, disagreement, and the need for a clear rubric. A document can be related to a query without actually answering it.</p>
+        <p>Implicit labels come from clicks, purchases, dwell time, and quick returns to the results page, sometimes called pogo-sticking. Those signals are easier to collect but ambiguous. A short visit can mean an immediate answer or a disappointing page. I'd use a hybrid approach where human judgments help audit and calibrate conclusions drawn from behavior.</p>
+        <p>A toy labeling scheme might assign three to a purchase, two to a click, and zero to a skipped result. I wouldn't blindly equate a skip with irrelevance: the user may never have examined it, and a purchase depends on price and availability too.</p>
 
-        <h2>Clicks come with baggage</h2>
-        <p>Training labels are where the problem gets awkward. Human relevance judgments cost time, while clicks are plentiful. But a click reflects where the result appeared, whether the user noticed it, and how tempting its presentation was, as well as relevance.</p>
-        <p>Imagine two equally useful products, one in position one and one in position eight. If the first gets more clicks, I can't conclude that it deserves the higher position. Training directly on those clicks can reinforce the ordering that generated them.</p>
-        <p><a href="https://www.microsoft.com/en-us/research/publication/unbiased-learning-rank-biased-feedback/" target="_blank" rel="noopener">Unbiased Learning-to-Rank with Biased Feedback</a> studies this problem using propensity weighting. The idea is to account for the opportunity a result had to be observed. It depends on estimating exposure, not just taking the reciprocal of raw click-through rate. I'd want reliable impression logs and a way to check the propensity assumptions before trusting the correction.</p>
+        <h2>Correct for the opportunity to be seen</h2>
+        <p>Imagine click rates of 35% at position one, 6% at position five, and 2% at position ten. These illustrative rates mix item quality with exposure. Training naively on them could teach the next model to preserve the current top result simply because it had the best position.</p>
+        <p>Inverse propensity scoring weights feedback by the inverse of an estimated observation or examination probability. A click on a less-examined result can then carry more weight. Raw CTR isn't that probability, since CTR also contains relevance. I'd need reliable impression logs and a defensible propensity estimate, potentially supported by randomized exposure data.</p>
+        <p>Small propensities produce large weights and high variance, so clipping or other regularization involves a bias-variance tradeoff. <a href="https://www.microsoft.com/en-us/research/publication/unbiased-learning-rank-biased-feedback/" target="_blank" rel="noopener">Unbiased Learning-to-Rank with Biased Feedback</a> explains the propensity-weighted formulation. It gives a principled approach, not permission to treat any weighted click log as unbiased.</p>
 
-        <h2>Learning an order</h2>
-        <p>A pointwise model predicts a score for each query-product pair. A pairwise model learns which of two results should come first. List-aware objectives use the impact on the ranking to guide training. These views helped me understand why an ordinary relevance regressor is a starting point rather than the only formulation.</p>
-        <p>LambdaMART is worth trying with structured relevance features. It uses boosted trees and ranking-aware gradients related to the effect of swapping results. I think describing it as simply “directly maximizing NDCG” hides too much: the metric depends on a discrete ordering, so the training procedure uses a surrogate.</p>
-        <p>I'd group examples by query during ranking training and evaluate on held-out searches. For a system trained on evolving click logs, I'd also use a later time period and inspect frequent queries separately from rare ones. Otherwise, a strong aggregate result could mostly reflect queries the system has seen many times.</p>
+        <h2>Separate understanding, retrieval, and ranking</h2>
+        <p>For a large search system, I'd think in stages. Query understanding interprets the request. Retrieval finds a manageable candidate set from the corpus. Ranking spends more work on those candidates. A final reranking or policy stage handles additional relevance signals, diversity, freshness, and product constraints.</p>
+        <p>A small application may not need a distinct learned model for every stage. The reason for separation is computational: a costly query-document interaction model may be affordable for fifty candidates and impossible for millions. It also makes errors easier to locate. If retrieval misses the answer, the final ranker has nothing to promote.</p>
+        <p>For product search, stock and specified size might be hard constraints rather than soft boosts. Sponsored results, if the product includes them, need explicit treatment. I wouldn't let a business rule quietly substitute popularity for relevance to the user's request.</p>
 
-        <h2>One useful result can matter more than ten decent ones</h2>
-        <p>NDCG@K rewards relevant results near the top and compares the ordering with an ideal list. For a lookup where someone wants one specific product, reciprocal rank of the first relevant result is useful too. The right measure depends on what a successful search looks like.</p>
-        <p>Online, I'd watch successful purchases or task completion alongside reformulations, zero-result searches, and latency. A search with no click isn't automatically a failure: the page may have answered the question directly. Equally, more clicks can mean users are struggling to find the right result.</p>
-        <p>I'd keep a small set of queries to inspect after each change: exact identifiers, misspellings, broad category searches, and uncommon descriptive requests. Seeing a new model mishandle a product code would tell me something a tiny improvement in average NDCG might conceal.</p>
+        <h2>Represent the query, document, and their relationship</h2>
+        <p>The feature groups I'd start with are:</p>
+        <ul>
+        <li><strong>Query:</strong> length, frequency, intent or query type, whether it names a brand, whether location matters, and relevant prior searches when personalization is appropriate.</li>
+        <li><strong>Document or product:</strong> sales over thirty days, views over seven days, average rating, review count, return rate, seller reputation, stock, and shipping eligibility such as Prime where applicable.</li>
+        <li><strong>Query-document match:</strong> exact title match, word overlap, embedding cosine similarity, lexical retrieval score, and historical CTR for this particular pair.</li>
+        </ul>
+        <p>Popularity and ratings can help compare otherwise relevant candidates. They can't make a blue shoe satisfy a red-shoe constraint. Return rate may indicate quality problems, but it can also reflect product category or fit, so I'd examine it in context.</p>
+        <p>Pair-level CTR is useful only with the exposure and sparsity caveats already discussed. Historical aggregates must stop at the training example's cutoff, and serving must compute compatible values.</p>
 
-        <h2>The version I'd build first</h2>
-        <p>I'd begin with lexical retrieval, explicit availability filters, and a modest relevance test set. Then I'd add semantic candidates and a learned ranker one at a time. My question at each step would be concrete: which searches now work that used to fail, and which ones got worse? That's a more useful reason to keep a model than the sophistication of its name.</p>
+        <h2>What TF-IDF and BM25 are measuring</h2>
+        <p>Term frequency (TF) counts how much a query term occurs in a document. Inverse document frequency (IDF) gives more weight to terms that occur in fewer documents. The basic idea is <code>TF-IDF = TF × IDF</code>; a specific model identifier often tells me more than a common word like “good.” Exact formulas vary in normalization and smoothing.</p>
+        <p>BM25 adds term-frequency saturation and document-length normalization. Repeating a word ten times doesn't make a page ten times more relevant, and long descriptions shouldn't win just because they have room to repeat everything. An inverted index makes lexical retrieval efficient by mapping terms to the documents that contain them.</p>
+        <p>Semantic retrieval can find related meanings when the wording differs. “Shoes for a wet trail” might match “waterproof trail footwear.” Exact product codes call for literal precision. I'd combine lexical and semantic candidates only after inspecting what each misses, rather than assume embeddings replace keyword matching.</p>
+
+        <h2>The ranking metric cares about order</h2>
+        <p>Discounted cumulative gain gives high-relevance results more credit near the top. Normalizing by the ideal order makes comparisons across queries more useful.</p>
+        <pre><code>DCG@K = Σ_(i=1 to K) gain(relevance_i) / log₂(i + 1)
+IDCG@K = DCG@K for the ideal ordering
+NDCG@K = DCG@K / IDCG@K</code></pre>
+        <p>A linear gain uses the grade itself; an exponential gain uses <code>2^grade - 1</code>. For grades [3, 0, 2] with linear gain, DCG@3 is <code>3 + 0 + 2/2 = 4</code>. The ideal [3, 2, 0] scores about <code>3 + 2/1.585 = 4.262</code>, giving NDCG about 0.939. That makes the penalty for putting the relevant item third visible.</p>
+        <p>For nonnegative gains with positive IDCG, NDCG lies between zero and one, with one representing an ideal ordering. If there are no relevant documents, IDCG is zero and the evaluation needs an explicit convention. NDCG is useful, but not automatically the primary metric for every kind of search.</p>
+
+        <h2>Learn scores, preferences, or ranking-aware updates</h2>
+        <p><strong>Pointwise learning</strong> treats each query-document pair as a regression or classification example and sorts by predicted score. LightGBM or a neural model can do that. It's a straightforward baseline, though the objective doesn't directly express competition within the query's list.</p>
+        <p><strong>Pairwise learning</strong> learns whether A should outrank B for the same query. RankNet models that preference using a score difference:</p>
+        <pre><code>P(A preferred to B) = sigmoid(score_A - score_B)</code></pre>
+        <p>It's natural to train the model to make preferred items score higher. Enumerating every pair has quadratic cost, so sampling and weighting are useful. Pairwise methods needn't weight every pair equally. A click on A and no click on B is only a trustworthy preference label if I account for whether B was seen.</p>
+        <p><strong>Listwise methods</strong> consider the list jointly. LambdaRank and LambdaMART are often discussed alongside them because their updates incorporate ranking-metric consequences. LambdaMART combines boosted trees with lambdas that weight pairwise updates by the effect of swaps on a metric such as NDCG. It doesn't differentiate or exactly optimize the discrete NDCG function itself.</p>
+        <p>I'd try it with structured relevance features and query groups. LightGBM's <a href="https://lightgbm.readthedocs.io/en/v4.4.0/pythonapi/lightgbm.LGBMRanker.html" target="_blank" rel="noopener">LGBMRanker documentation</a> describes the ranking interface and its lambdarank objective. The model is a strong candidate, not an automatic accuracy winner. Query grouping, label quality, and evaluation still decide whether it works.</p>
+
+        <h2>Where neural relevance models fit</h2>
+        <p><strong>DSSM</strong>, the Deep Structured Semantic Model, encodes queries and documents separately and compares their vectors. Its character n-gram representation helps share information across related spellings such as “runing” and “running.” It can capture associations beyond exact words, although spelling robustness and semantic accuracy still need testing.</p>
+        <p><strong>A BERT cross-encoder</strong> reads the query and document together, for example <code>[CLS] red running shoes [SEP] red marathon shoe [SEP]</code>. Cross-attention permits detailed interactions between their tokens. That is more expensive than independently precomputed document embeddings, so I'd usually reserve it for a small shortlist if measurements justify it.</p>
+        <p><strong>ColBERT</strong> uses late interaction. It precomputes document token embeddings and compares them with query-token embeddings using a MaxSim-style score:</p>
+        <pre><code>score(query, document) =
+  Σ_(query tokens q) max_(document tokens d) similarity(q, d)</code></pre>
+        <p>This retains token-level matching while avoiding a full cross-encoder pass per document. It trades additional index storage for an interaction pattern richer than a single vector per document. The accuracy and speed ordering of these methods depends on the models, compression, hardware, and dataset.</p>
+        <p>One illustrative stack retrieves 500 BM25 candidates through Elasticsearch and 500 semantic candidates through ANN search, deduplicates them to perhaps 800, uses LambdaMART to keep fifty, then a cross-encoder to order twenty. Finally it applies the relevant product constraints. Those counts describe a possible budget; they aren't architecture requirements.</p>
+
+        <h2>Make the query pipeline careful rather than clever</h2>
+        <p>Spell correction could turn “runing shoez” into “running shoes,” using a noisy-channel model or a Transformer. Query expansion could add “sneakers” or “trainers,” with embedding methods such as Word2Vec suggesting related terms. I'd validate expansions because related words aren't always interchangeable.</p>
+        <p>Intent classification distinguishes navigational requests for a known destination, informational requests for knowledge, and transactional requests to do or buy something. Entity recognition can parse “red Nike Pegasus size 10” into color, brand, product family, and size. Those entities may become structured filters. An unfamiliar product code should survive normalization rather than get corrected into an ordinary word.</p>
+        <p>Head queries have abundant interaction history. Tail queries need more help from lexical and content features because query-specific CTR is sparse. Query clustering can share evidence across similar requests; semantic embeddings or pretrained neural rankers can generalize; LLM query rewriting can propose a better retrieval expression. I'd evaluate rewrites for changed intent and extra latency, and keep a reliable fallback.</p>
+
+        <h2>Freshness should depend on intent</h2>
+        <p>A query for this year's laptops makes an old buying guide less useful than it might be for a question about laptop history. A simple freshness component decays with document age:</p>
+        <pre><code>freshness = exp(-λ × days_since_published)
+final_score = α × relevance + (1 - α) × freshness</code></pre>
+        <p>That blend needs compatible score scales. I'd use a larger relevance weight for evergreen queries and potentially a larger freshness contribution for current events, with the parameters validated by query type. Newness alone doesn't make a document accurate or relevant.</p>
+
+        <h2>Evaluate offline, then check the experience</h2>
+        <p>I'd use NDCG@K for graded relevance, mean reciprocal rank (MRR) when finding the first useful result matters, and mean average precision (MAP) when retrieving multiple relevant results matters. Reciprocal rank is <code>1 / first_relevant_rank</code>, or zero when no relevant result is found. Average precision averages precision at the ranks containing relevant items, normalized by the relevant set; MAP averages that per-query value.</p>
+        <p>I'd hold out query groups appropriately, test on later traffic for an evolving system, and inspect head and tail queries separately. Candidate recall should be measured before ranking quality. A daily held-out judgment set can detect regressions, though it must stay representative as the corpus and queries change.</p>
+        <p>Online I'd track CTR, conversion, revenue per search where relevant, zero-result rate, abandonment, and immediate reformulation. No click isn't always failure if an answer is visible on the results page. More clicks can mean more struggling. An A/B test needs an outcome and guardrails that reflect the search task.</p>
+        <p>Production monitoring should include zero-result rate by query category, feature-distribution drift, retrieval and ranking failures, index freshness, and P50, P95, and P99 latency. A feature store can help serve consistent low-latency inputs, but I still need fallback behavior when a feature is missing.</p>
+
+        <h2>The explanation I'd give before building</h2>
+        <p>I'd start with the query intent and success measure, explain how labels are collected and biased, and separate candidate retrieval from ranking. I'd propose a lexical baseline, then add semantic candidates, a learned ranker, or a cross-encoder only for measured gaps. I'd finish with offline relevance, online task outcomes, tail queries, and the latency budget. The question I'd keep asking is concrete: which searches now work that used to fail, and which ones got worse?</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/search-ranking-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/search-ranking-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Who Might Leave, and Who Can I Help? | Shashank Chandavarkar</title>
+  <title>Who Might Leave, and Who Can I Help? (Churn Prediction) | Shashank Chandavarkar</title>
   <meta name="description" content="Predicting a cancellation doesn&#x27;t tell me whether outreach will help. I worked through observation windows, usage trends, and the difference between churn risk and the effect of an intervention." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="Who Might Leave, and Who Can I Help?" />
+  <meta property="og:title" content="Who Might Leave, and Who Can I Help? (Churn Prediction)" />
   <meta property="og:description" content="Predicting a cancellation doesn&#x27;t tell me whether outreach will help. I worked through observation windows, usage trends, and the difference between churn risk and the effect of an intervention." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/churn-prediction.html" />
@@ -34,48 +34,108 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · Churn prediction</p>
-        <h1>Who Might Leave, and Who Can I Help?</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+        <h1>Who Might Leave, and Who Can I Help? (Churn Prediction)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 12 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
         <p class="lede">Knowing someone is likely to leave doesn't tell me whether a discount will make them stay. That's the distinction I find most useful in churn prediction. A risk model can identify a worrying pattern; deciding how to respond requires another kind of evidence.</p>
 
-        <h2>First I need a definition of leaving</h2>
-        <p>Cancellation is fairly concrete for a subscription product. In a shopping app, a quiet month could mean someone has left, or simply that they don't need anything right now. A downgrade is another possibility: the person stays, but the revenue changes.</p>
-        <p>I'd write down the event, the population, and the prediction horizon before assembling features. For a worked setup, suppose I'm scoring active paid accounts at the end of January and predicting cancellations during February. That gives me a clear cutoff and a specific outcome to evaluate.</p>
-        <p>The horizon has to leave time for a useful action. Predicting cancellation minutes before it happens might be accurate while being useless to a customer-success team that needs several days to help.</p>
+        <h2>Define leaving before predicting it</h2>
+        <p>Churn can mean a telecom cancellation, a streaming non-renewal, a closed bank account, a player abandoning a game, or a business not renewing its software contract. The practical aim is to identify risk early enough to respond. The economics depend on acquisition cost, contribution margin, and the effectiveness of the response; I'd estimate those rather than assume a universal retention-profit multiplier.</p>
+        <p>I'd distinguish hard churn, such as cancellation, from soft churn, such as thirty days without activity, and revenue churn, such as moving from paid to free. Contractual products provide an explicit event, although cancellation request and service termination can differ. Non-contractual products need an operational rule, perhaps no purchase in ninety days, that fits the expected buying cycle.</p>
+        <p>The prediction horizon might be seven, thirty, or ninety days. A shorter horizon can offer fresher signals but less time to help; it isn't automatically more accurate. I'd ask what the intervention is, who can deliver it, and how long it takes. A discount, a support call, and onboarding assistance address different problems.</p>
+        <p>B2B and B2C also change the setup. Business accounts may have multiple users, contract dates, higher account values, and limited customer-success capacity. Consumer products may have much larger populations and noisier individual histories. Those are tendencies to check, not fixed rules.</p>
 
-        <h2>The calendar belongs in the dataset</h2>
-        <p>My January features could include logins, feature use, unresolved support tickets, and billing events known by January 31. February's cancellation request cannot sneak into that snapshot just because it's present in the database when I later build the training table.</p>
+        <h2>Put the cutoff in the dataset</h2>
+        <p>For a concrete setup, suppose I score active paid accounts at the end of January using behavior from January, then predict cancellations in February.</p>
         <pre><code>Observation window: January 1–31
-Prediction made:    end of January 31
-Outcome window:    February 1–28
+Prediction cutoff:  end of January 31
+Label window:       February 1–28
 
-Features stop at the prediction cutoff.
-Labels need the complete outcome window.</code></pre>
-        <p>I'd also check when each field becomes available. A record with an old event date may only have been ingested later. Point-in-time correctness needs to reflect what the scoring system actually knew, not merely the timestamp the warehouse eventually stores.</p>
-        <p>For validation, I'd move those snapshots forward through time and train only on outcomes available at each simulated training date. Recent accounts without a complete outcome window shouldn't quietly become examples of “didn't churn.” That would reward the model for a labeling mistake.</p>
+Features stop at the cutoff.
+Labels require a complete outcome window.</code></pre>
+        <p>A February cancellation request can't enter the January snapshot just because the warehouse contains it when I later build training data. I'd also check ingestion time. An event with a January date that arrived in February wasn't available to the original prediction.</p>
+        <p>Accounts without a complete outcome window must not automatically become “didn't churn” labels. Repeated snapshots need care too: I'd prevent overlapping outcomes and account information from making the evaluation unrealistically easy. The right split depends on whether I need to generalize to future observations of existing accounts, entirely new accounts, or both.</p>
 
-        <h2>Five logins can mean two different things</h2>
-        <p>A customer who has always logged in five times a week looks different from one who fell from thirty to five. The current count is the same; the direction isn't. I'd use recency and frequency alongside changes over several windows, rather than expecting a single usage total to carry the whole story.</p>
-        <p>Ratios need care when the earlier window contains zero activity. I'd keep the underlying counts and an explicit missing-history flag instead of letting an arbitrary denominator create a dramatic trend. New accounts also need to be distinguished from established accounts whose activity has stopped.</p>
-        <p>Usage breadth, unresolved tickets, renewal dates, and failed payments could all help. I'd inspect them by plan and tenure. A once-a-month workflow may be perfectly healthy for one customer, while the same activity pattern is a sharp decline for another.</p>
+        <h2>Look at segments before fitting a model</h2>
+        <p>I'd examine churn by plan, tenure, usage, and acquisition cohort. For illustration, a dataset might show Starter, Pro, and Enterprise churn of 12%, 4%, and 1%; tenure groups of 0–30, 31–180, and over 180 days might show 20%, 6%, and 2%; and inactive versus frequent users might show 35% versus 1%. These are example rates, not benchmarks. They need the same event definition and time horizon to be comparable.</p>
+        <p>I'd check sample sizes and exposure before interpreting those gaps. An annual contract and a monthly subscription don't create the same opportunities to cancel. Strong early churn would make onboarding worth investigating, but a customer who hasn't found value in thirty or sixty days isn't guaranteed to leave.</p>
+        <p>A survival curve offers another view: what proportion remains active beyond each tenure? It helps me see timing instead of compressing the lifecycle into one fixed-window rate.</p>
 
-        <h2>Risk and timing are different questions</h2>
-        <p>I'd start with logistic regression and compare it with boosted trees on the snapshot dataset. I'd want precision-recall results and lift at the team's actual contact capacity. If the team can call fifty accounts, the quality of those fifty matters more than the quality of a queue nobody can finish.</p>
-        <p>Survival analysis becomes useful when the question is how long an account is likely to remain active. Customers still present when observation ends are right-censored: I know they've stayed at least that long, but not their eventual departure time. The <a href="https://scikit-survival.readthedocs.io/en/stable/user_guide/00-introduction.html" target="_blank" rel="noopener">scikit-survival introduction</a> explains why these incomplete outcomes need special treatment.</p>
-        <p>A Cox model relates features to the hazard, a conditional event rate. I'd be careful with its coefficients. An association between more logins and a lower hazard doesn't establish that asking people to log in more will keep them subscribed. The proportional-hazards assumption also needs checking.</p>
+        <h2>Measure level, breadth, and direction</h2>
+        <p>My feature list would include:</p>
+        <ul>
+        <li><strong>Account:</strong> plan, contract length, tenure, seat count, monthly recurring revenue (MRR), auto-renew status, and days until renewal.</li>
+        <li><strong>Recency and frequency:</strong> days since last login, logins over seven and thirty days, and active days in the last month.</li>
+        <li><strong>Depth and collaboration:</strong> distinct features used, integrations enabled, and active collaborators. I'd compare these with what healthy use means for that account type.</li>
+        <li><strong>Support and account health:</strong> recent tickets, unresolved tickets, resolution time, billing failures, and available satisfaction responses.</li>
+        </ul>
+        <p>A satisfaction survey's zero-to-ten response is an individual rating. Net Promoter Score itself is an aggregate: percentage of promoters, ratings nine or ten, minus percentage of detractors, ratings zero through six. I'd name those fields correctly and account for who answers the survey.</p>
+        <p>Five weekly logins mean something different for a customer who has always had five than for one who fell from thirty. Trend features make that distinction explicit:</p>
+        <pre><code>login_ratio = logins_this_month / logins_last_month
+feature_ratio = features_this_month / features_last_month
+slope, intercept = polyfit(weeks, weekly_logins, 1)</code></pre>
+        <p>A move from fifty monthly logins to twenty is a 60% decline. A negative ninety-day usage slope can summarize a sustained reduction. Neither proves disengagement: seasonal work, holidays, or a workflow becoming more efficient can also reduce activity.</p>
+        <p>I'd handle zero denominators and short histories explicitly, keeping raw counts and a missing-history indicator. Renewal and auto-renew features need a timing check too. A field updated only after a cancellation decision may be too late for the intended intervention.</p>
 
-        <h2>The call changes what happens next</h2>
-        <p>Suppose the model flags an account, someone calls, and the customer stays. Was the prediction wrong, or did the call help? That individual outcome can't tell me. The response has changed the very outcome I was trying to predict.</p>
-        <p>This is where I'd separate churn risk from uplift: the estimated change in retention caused by an intervention. A randomized treatment and control comparison is a much stronger starting point than comparing accounts the team chose to call with ones it ignored. Those groups may have been different before anyone picked up the phone.</p>
-        <p>A two-model approach can estimate retention under treatment and under control, then take the difference. The <a href="https://www.pywhy.org/EconML/spec/estimation/metalearners.html" target="_blank" rel="noopener">EconML explanation of T-learners</a> lays out that structure. The models don't eliminate the need for credible treatment assignment or causal assumptions when using observational data.</p>
-        <p>For a toy calculation, suppose an intervention increases retention probability by 0.08, the retained relationship is worth $1,000 in expected contribution over a defined horizon, and outreach costs $20. That's <code>0.08 × 1,000 - 20 = $60</code> in expected incremental value. I wouldn't multiply by churn probability again if the uplift already measures the probability difference.</p>
+        <h2>Survival analysis keeps incomplete outcomes useful</h2>
+        <p>Let <code>T</code> be time to churn. The survival function is <code>S(t) = P(T &gt; t)</code>. For an account still active when observation ends, I know it stayed at least that long, but not its eventual departure time. That's right censoring.</p>
+        <pre><code>Kaplan-Meier:
+Ŝ(t) = ∏_(t_i ≤ t) (1 - d_i / n_i)
 
-        <h2>What I'd put in front of the team</h2>
-        <p>I'd show the account's recent changes, the suggested action, and enough context to check whether the recommendation makes sense. A feature attribution can explain a model's score; it doesn't prove why a person wants to leave.</p>
-        <p>The first experiment I'd want is small: one clearly defined intervention, a limited queue, and a randomized holdout where appropriate. I'd measure incremental retention and cost after the outcomes mature. Finding likely churners is useful. I'd want to know whether acting on that information made their experience better enough to stay.</p>
+d_i = churn events at time t_i
+n_i = accounts at risk just before time t_i</code></pre>
+        <p>Kaplan-Meier estimates survival without specifying a parametric shape. It can describe a cohort or compare segments, but doesn't fit feature coefficients. Its interpretation depends on assumptions such as non-informative censoring; accounts disappearing from observation for churn-related reasons complicate the analysis. The <a href="https://scikit-survival.readthedocs.io/en/stable/user_guide/00-introduction.html" target="_blank" rel="noopener">scikit-survival introduction</a> explains censored outcomes and survival estimation.</p>
+        <p>The Cox proportional hazards model introduces features:</p>
+        <pre><code>h(t | x) = h₀(t) × exp(β₁x₁ + β₂x₂ + ...)
+Hazard ratio for a one-unit change in x_j = exp(β_j)</code></pre>
+        <p>The hazard is an instantaneous conditional event rate, not a probability of “churning right now.” With a hypothetical coefficient of -0.8 for weekly logins, <code>exp(-0.8) ≈ 0.45</code> means an associated hazard about 55% lower per unit, holding other modeled features fixed. A billing-issue coefficient of 2.1 corresponds to a hazard ratio around 8.2. Neither is a causal effect or a direct percentage change in thirty-day churn probability.</p>
+        <p>I'd examine the proportional-hazards assumption instead of accepting those ratios across all tenures without checking. The distinction matters when explaining the model to someone who may turn an association into an intervention.</p>
+
+        <h2>Compare the model families on the same question</h2>
+        <p><strong>Logistic regression</strong> is an inspectable fixed-horizon baseline. It models a weighted combination of features on the log-odds scale. It can capture a useful relationship between falling activity, support history, and risk, but only the interactions and nonlinearities I represent appropriately.</p>
+        <p><strong>Random forest</strong> averages predictions from trees trained with bootstrap samples and feature randomness. Averaging diverse trees reduces variance, although correlated errors remain. It handles nonlinear patterns and provides importance measures; I'd check those measures against held-out performance rather than treat them as causal explanations.</p>
+        <p><strong>XGBoost and LightGBM</strong> improve an objective through sequential tree additions. They're strong candidates for tabular snapshots, not guaranteed winners. Class weighting, such as an estimator's balanced weights or positive-class weighting, can address imbalance. I'd use the parameter supported by that implementation, tune it, and check probabilities. Early stopping limits unnecessary fitting using validation performance; it doesn't prove the final model won't overfit.</p>
+        <p><strong>Survival models</strong> answer a timing question. Kaplan-Meier gives a cohort baseline and Cox brings features into the hazard model. DeepSurv learns a nonlinear risk function within a Cox-style formulation. DeepHit models event-time distributions and can handle competing events. Those neural alternatives can capture more complex relationships, with extra data needs and less straightforward coefficient interpretation. I'd compare their survival calibration and discrimination rather than assume they outperform Cox.</p>
+        <p><strong>Sequence models</strong> use the event path itself, for example login, create document, invite teammate, later edit, then an unresolved support ticket. An LSTM or Transformer may capture order that monthly aggregates erase. It still needs event definitions, time handling, sufficient history, and a sensible comparison with engineered trends.</p>
+
+        <h2>Risk isn't the value of an intervention</h2>
+        <p>A high-risk customer might leave regardless of contact. Another might stay without a discount. A third might respond to a specific support action. Risk scores alone don't distinguish those cases.</p>
+        <p>A simple expected-value calculation sometimes factors the incremental benefit into probability of churn without treatment, probability of saving someone who would otherwise churn, and the value retained:</p>
+        <pre><code>EV = P(churn without intervention)
+   × P(saved | would otherwise churn, intervention)
+   × retained value
+   - intervention cost</code></pre>
+        <p>For an illustrative $500-per-month account retained for thirty-six more months, gross revenue would be $18,000. With probabilities 0.7 and 0.3 and a $500 intervention, the arithmetic is <code>0.7 × 0.3 × 18,000 - 500 = $3,280</code>. I'd avoid calling $18,000 a precise lifetime value: margin, discounting, future survival, and service costs matter. The probability factorization also assumes the intervention doesn't cause harm or create other effects that need modeling.</p>
+        <p>Uplift asks more directly how treatment changes retention probability:</p>
+        <pre><code>uplift(x) = P(retained under treatment | x)
+          - P(retained under no treatment | x)
+EV(x) = uplift(x) × retained contribution value - cost</code></pre>
+        <p>If uplift is 0.08, retained contribution is $1,000 over a defined horizon, and contact costs $20, expected incremental value is $60. I wouldn't multiply by churn probability again; the uplift already represents the probability difference.</p>
+
+        <h2>The four response types explain the counterfactual problem</h2>
+        <p>Conceptually, there are four groups. Persuadables stay because of the intervention. Sure things stay either way. Lost causes leave either way. The “do not disturb” group would stay without treatment but leave with it, so this is an adverse treatment effect, not merely a happy customer who doesn't need a call.</p>
+        <p>Those aren't individual labels I can observe directly, because I can't see the same person's treated and untreated outcome under identical conditions. A T-learner fits one response model for treated accounts and another for controls, then subtracts their predictions. The <a href="https://www.pywhy.org/EconML/spec/estimation/metalearners.html" target="_blank" rel="noopener">EconML description of meta-learners</a> lays out that construction.</p>
+        <p>Two models don't make arbitrary historical outreach causal evidence. Customer-success teams may have selectively contacted the most worried accounts. Randomized assignment is a stronger starting point; observational estimation needs justified assumptions about confounding and overlap.</p>
+
+        <h2>Evaluate risk and intervention separately</h2>
+        <p>ROC-AUC measures ranking discrimination across thresholds. PR-AUC or average precision is often more informative about the positive queue when churn is rare. A score of 0.8 or 0.9 isn't universally “good”; prevalence, the task, uncertainty, and action capacity affect usefulness. I'd also inspect calibration if probabilities drive value estimates.</p>
+        <p>A lift curve asks how much better the selected queue is than random selection. If the top 20% of accounts contains 65% of future churners, recall at that capacity is 65%, and lift is <code>0.65 / 0.20 = 3.25</code>. That measures concentration of churn risk, not how many of those customers outreach can save.</p>
+        <p>I'd use time-based snapshots to simulate deployment. For example, July–November observation windows could have August–December outcomes, followed by December observations with January labels for validation and January observations with February labels for testing. The simulated training date must wait until each training label is available. If I need to evaluate new-account generalization, I'd add an account holdout as well.</p>
+        <p>For interventions, I'd compare outcomes in randomized treatment and control groups where appropriate. An illustrative 80/20 split among eligible high-risk accounts can estimate the effect of a specific outreach policy, with sample size chosen for statistical power. If a flagged customer stays after a call, that single outcome cannot tell me whether the prediction was wrong or the call worked.</p>
+
+        <h2>Make the daily queue actionable</h2>
+        <p>A batch system could collect the last thirty days of behavior, along with longer history for trends, compute cutoff-safe features, score active accounts, and prioritize eligible interventions by incremental value and capacity. An example routing policy might send fifty accounts to personal outreach and another two hundred to an email campaign. Those channels are different treatments and should be evaluated separately.</p>
+        <p>Segmented thresholds can reflect different costs and values. For illustration, one might test 0.15 risk for accounts above $1,000 MRR, 0.35 for a middle segment, and 0.60 for a lower-value segment. I'd derive a policy from value, response, and capacity instead of copying those numbers. Low-cost help can still be appropriate for a low-revenue customer, and risk alone doesn't estimate treatment benefit.</p>
+        <p>I'd log the score, features, model version, chosen action, treatment assignment, and eventual outcome. Monthly retraining is a possible schedule once labels mature. A persistent holdout helps track whether the policy continues to work as customers and interventions change.</p>
+        <p>The team needs observable context, not just a score. A useful explanation might say that logins fell 80%, four tickets remain unresolved, auto-renew is off, and only two of twenty features were used. SHAP can identify which inputs influenced the model, but the support conversation should verify the situation. “I noticed those tickets are still open; can I help get them resolved?” is more useful than announcing that an algorithm expects the customer to leave.</p>
+
+        <h2>How I'd frame the system</h2>
+        <p>I'd start with the event definition, cutoff, horizon, and action. I'd compare snapshot classifiers using trends and account context, bring in survival analysis if timing matters, and evaluate risk at the team's real capacity. Then I'd test the intervention with a credible control group and judge incremental retention after outcomes mature. Finding likely churners is one result; showing that the response helped them is another result I need to measure.</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/churn-prediction-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/churn-prediction-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>What an Unwatched Film Doesn&#x27;t Tell Me | Shashank Chandavarkar</title>
+  <title>What an Unwatched Film Doesn&#x27;t Tell Me (Recommendation Systems) | Shashank Chandavarkar</title>
   <meta name="description" content="An empty cell in a user-item matrix could mean dislike, or just that someone never saw the film. I worked through what that ambiguity means for retrieval, ranking, and discovery." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="What an Unwatched Film Doesn&#x27;t Tell Me" />
+  <meta property="og:title" content="What an Unwatched Film Doesn&#x27;t Tell Me (Recommendation Systems)" />
   <meta property="og:description" content="An empty cell in a user-item matrix could mean dislike, or just that someone never saw the film. I worked through what that ambiguity means for retrieval, ranking, and discovery." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/recommendation-systems.html" />
@@ -34,40 +34,104 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · Recommendation systems</p>
-        <h1>What an Unwatched Film Doesn&#x27;t Tell Me</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+        <h1>What an Unwatched Film Doesn&#x27;t Tell Me (Recommendation Systems)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 11 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
-        <p class="lede">An unwatched film is a surprisingly ambiguous piece of data. Maybe I don't like it. Maybe I've never heard of it. Maybe it was buried so far down the page that I never had a chance to choose it. A recommender has to learn from all of those possibilities sharing the same empty cell.</p>
+        <p class="lede">An unwatched film is an ambiguous piece of data. Maybe I don't like it. Maybe I've never heard of it. Maybe it was buried so far down the page that I never had a chance to choose it. A recommender has to learn from all of those possibilities sharing the same empty cell.</p>
 
-        <h2>The missing rating isn't a no</h2>
-        <p>The user-item matrix is a useful starting picture: people down one axis, films along the other, and interactions in the cells. Most cells are empty. I find the important question is why they're empty, because treating every missing interaction as dislike turns the existing catalogue exposure into a statement about taste.</p>
-        <p>Explicit ratings help, but even those come from people who chose to rate. Implicit feedback is more plentiful and harder to interpret. Finishing a film suggests interest; it doesn't prove enjoyment. A quick click followed by an immediate exit tells a different story from watching the whole thing twice.</p>
-        <p>I'd want impression logs alongside the interactions: what was shown, where it appeared, and what happened afterward. Otherwise, I can't reliably distinguish something the user rejected from something they never saw.</p>
+        <h2>Decide what a useful recommendation means</h2>
+        <p>Recommendation shows up in film suggestions, related products, music playlists, short-video feeds, and people you might know. The common idea is to help someone discover an item without requiring an explicit search. The goal could be a click, a completed purchase, a satisfying session, or returning next month. Those are related outcomes, but optimizing one doesn't guarantee the others.</p>
+        <p>I'd first ask what we're recommending, how many users and items there are, which feedback is available, how new users and items enter, and how quickly the list must react. A daily email can use batch computation. An interactive feed may need the latest event reflected in the next request. A hypothetical 100 million users and 10 million items makes scoring every possible pair impractical.</p>
+        <p>Recommendations can create business value through discovery and retention. I'd measure that value in the particular product rather than assume a widely quoted savings figure applies to every service.</p>
 
-        <h2>Similarity gives me a starting point</h2>
-        <p>Item-based collaborative filtering is easy to reason about. If people who enjoy one film also enjoy another, the second might be a useful suggestion. Content-based matching takes a different route, using genre, language, descriptions, and other metadata. That gives a new film a chance before it has an audience.</p>
-        <p>Matrix factorization compresses the interaction patterns into user and item vectors. Their dot product becomes a compatibility score. I like the economy of that idea, but I wouldn't give the latent dimensions neat human labels without evidence. A learned direction isn't necessarily “how much this person likes action films.”</p>
-        <p>I'd compare these approaches with a popularity baseline before reaching for a sequence model. Popularity is a useful fallback, particularly for a new account. It's also a baseline that can look strong while offering the same small set of titles to everyone.</p>
+        <h2>Read the feedback carefully</h2>
+        <p><strong>Explicit feedback</strong> includes star ratings, thumbs up or down, and reviews. It is relatively direct but comes from the subset of people who choose to respond. <strong>Implicit feedback</strong> includes impressions, clicks, watch percentage, purchases, and replays. It is often easier to collect and much noisier to interpret.</p>
+        <p>Watching 90% of a film might suggest interest; stopping after 10% might suggest disappointment. Either could have another explanation. Rewatching could mean affection, and a click could mean curiosity, but neither is an unambiguous preference label. I'd retain the event type rather than flatten everything into “liked.”</p>
+        <p>The user-item matrix puts users in rows, items in columns, and ratings or interactions in cells. To see the sparsity, imagine a catalogue of 6,000 films and a user who has watched 50. About 99.17% of that row is empty. That's an illustration, not a claim about a service's current catalogue. Crucially, an empty cell can mean no exposure rather than dislike.</p>
+        <p>I'd examine the long tail too. A few items may collect most interactions while many receive very few. Popular items are easier to learn about, which can make them easier to recommend, which gives them still more data. The distribution can be strongly skewed without following an exact power law. Niche discovery is valuable when it actually matches the person.</p>
 
-        <h2>Finding candidates and ordering them are separate jobs</h2>
-        <p>For a large catalogue, carefully scoring every user-item pair on every request becomes expensive. The split that makes sense to me is a fast retrieval stage followed by a more selective ranking stage. Google's <a href="https://research.google/pubs/deep-neural-networks-for-youtube-recommendations/" target="_blank" rel="noopener">YouTube recommendation paper</a> describes this separation between candidate generation and ranking.</p>
-        <p>A two-tower retriever maps the user context and each item into a shared embedding space. Item vectors can be computed ahead of time, so serving mostly involves producing the user vector and looking up nearby items with approximate nearest-neighbor search. A ranker can then spend more effort on the smaller candidate set, using features that depend on the particular user-item pair.</p>
-        <p>The failure I'd watch for is a good item never reaching the ranker. If retrieval misses a niche film completely, a better ranking model can't rescue it. I'd measure candidate recall separately and consider mixing candidates from collaborative, content-based, and popularity sources.</p>
+        <h2>Keep exposure beside the interaction</h2>
+        <p>A result near the top gets more opportunity to be noticed. If position one has a 35% click rate and position ten has 2% in a hypothetical log, I can't attribute the gap entirely to item quality. Training naively on those clicks can preserve the ordering that produced them.</p>
+        <p>I'd log what was shown, where, and under which recommendation policy. Inverse propensity scoring weights an observation by the inverse of its estimated exposure or examination probability. That probability isn't simply the item's raw click-through rate, because clicking also depends on relevance. Very small propensities create large, noisy weights, so estimation and variance control matter. <a href="https://www.microsoft.com/en-us/research/?p=398366" target="_blank" rel="noopener">Recommendations as Treatments</a> studies this selection-bias problem in training and evaluation.</p>
 
-        <h2>A small example of the feedback loop</h2>
-        <p>Imagine a new user watches two action films. We fill the next screen with action, they choose another, and now we have three observations that appear to confirm the preference. But we never offered much else. The model is partly learning the consequences of its own earlier choices.</p>
-        <p>I'd leave some room for discovery, within a set of plausible recommendations. That could mean a small amount of exploration or a bandit policy once the reward and constraints are clear. Completely random suggestions would produce data, but they'd also make the product annoying.</p>
-        <p>New items need similar care. Metadata can get them into the candidate pool, but without exposure they may never collect enough interactions to compete. I'd monitor how recommendation traffic is distributed across the catalogue, rather than judging the system only by how well it serves already-popular items.</p>
+        <h2>The features describe people, items, and context</h2>
+        <p>I'd separate three feature groups so I can see what each contributes:</p>
+        <ul>
+        <li><strong>User context:</strong> account age, average session length, inferred genre preferences, active hours, device, and relevant location information. Age or other demographic attributes need a clear purpose and appropriate handling; they aren't automatic requirements for personalization.</li>
+        <li><strong>Item information:</strong> genres, director, cast, release year, runtime, language, historical average rating, and popularity counts. Aggregates must be calculated using information available at the prediction cutoff.</li>
+        <li><strong>Interaction history:</strong> watch percentage, time to first play, number of sessions needed to finish, past device type, and time of day. These help distinguish a long-standing preference from a temporary situation.</li>
+        </ul>
+        <p>The current request can use device and time immediately. Completion percentage for the item being recommended belongs to the future outcome, not a feature available before the user watches it. That distinction is easy to lose when building a training table after the fact.</p>
 
-        <h2>The metric can reward the wrong experience</h2>
-        <p>Recall@K tells me whether held-out relevant items made the shortlist. NDCG@K also cares where they landed. Both are useful, provided the held-out interactions happen after the training cutoff and the candidate set resembles what the system actually serves.</p>
-        <p>Neither metric tells me whether a person enjoyed the evening. Clicks can reward an attractive thumbnail. Watch time can reward a longer film. I'd pick an online outcome that fits the product, then look at satisfaction signals, repeat use, and catalogue coverage alongside it. An A/B test should have enough time to see beyond the first click.</p>
-        <p>There are serving details I'd want to test too: stale user histories, an out-of-date item index, unavailable titles, and a fallback when personalization fails. The model could be working exactly as trained while those details make its suggestions useless.</p>
+        <h2>Three ways of measuring similarity</h2>
+        <p>Cosine similarity compares vector directions. Pearson correlation compares centered values, which helps when one person gives everything generous ratings and another rarely gives more than three stars. Jaccard similarity compares sets of interacted-with items.</p>
+        <pre><code>Cosine(A, B) = (A · B) / (||A|| × ||B||)
 
-        <h2>Where I'd begin</h2>
-        <p>I'd build a popularity baseline, an item-similarity model, and a content-based fallback, then inspect a handful of recommendation lists. Do they repeat the same thing? Do new users get sensible choices? Does a change of interest show up? Those questions would give me a reason to add complexity. A larger model alone wouldn't answer them.</p>
+Pearson(A, B) =
+  Σ((a_i - mean(A)) × (b_i - mean(B)))
+  / sqrt(Σ(a_i - mean(A))² × Σ(b_i - mean(B))²)
+
+Jaccard(A, B) = |A ∩ B| / |A ∪ B|</code></pre>
+        <p>A cosine of one means aligned vectors, zero means orthogonality, and minus one means opposite directions where negative coordinates are possible. Those are mathematical relationships, not proof of identical or opposite human taste. I'd also define behavior for zero vectors, too few shared ratings, and empty unions. Similarity based on one shared film is much weaker evidence than similarity across a substantial history.</p>
+
+        <h2>Collaborative filtering and factorization</h2>
+        <p><strong>User-based collaborative filtering</strong> finds similar users and recommends things those neighbors enjoyed. It's intuitive and explainable, but maintaining neighbor relationships across a huge user population is expensive, and new users lack the history it needs.</p>
+        <p><strong>Item-based collaborative filtering</strong> finds items frequently associated with those the user liked. The explanation “because you watched this” is natural. Precomputing item similarities can be practical when the catalogue is smaller or more stable than the user population, though that depends on the application. A newly added item still has little collaborative evidence.</p>
+        <p>Matrix factorization learns a compact representation rather than storing all pairwise similarities. With <code>k</code> latent dimensions, user matrix <code>P</code> has shape users × k and item matrix <code>Q</code> has shape items × k.</p>
+        <pre><code>R ≈ P × Qᵀ
+predicted_rating(u, i) = p_u · q_i
+
+Loss = Σ_(u,i in observed ratings)
+         (r_ui - p_u · q_i)²
+       + λ(||P||² + ||Q||²)</code></pre>
+        <p>The regularization term discourages large parameters and helps control overfitting. The latent dimensions capture interaction patterns, but I'd avoid casually naming one “romance” or another “action” without checking. User and item biases can be added to this simplified formulation.</p>
+        <p>The SVD identity is <code>R = UΣVᵀ</code>, with a truncated version retaining fewer components. In recommendation, a sparse matrix with unknown ratings isn't simply a complete matrix full of zeros. Learning factors on observed ratings, or using a confidence-weighted implicit-feedback objective, handles a different problem from blindly applying SVD to zero-filled data.</p>
+        <p>Alternating Least Squares (ALS) fixes item factors while solving for user factors, then reverses the roles. That structure is useful for parallel computation. Stochastic Gradient Descent (SGD) updates factors using individual observations or batches. Both can learn useful latent structure, but basic factorization doesn't automatically solve new-user or new-item cold start, and side information needs an extension.</p>
+
+        <h2>Use content when interaction history is thin</h2>
+        <p>Content-based filtering builds a user profile from item attributes or embeddings and finds similar items. Metadata lets a new film participate before many people have watched it, and the matching attributes can support an explanation. The limits are metadata quality and overspecialization: repeatedly matching the same genres can make the list predictable.</p>
+        <p>A hybrid can combine collaborative, content, and popularity signals:</p>
+        <pre><code>score = α × collaborative_score
+      + β × content_score
+      + γ × popularity_score</code></pre>
+        <p>I'd put component scores on compatible scales and tune the weights using held-out behavior. A blend is one option; another is retrieving candidates from several sources and letting a ranker learn their relationships. Content can help with new items, while collaborative patterns can surface connections not obvious from genre labels.</p>
+
+        <h2>What the neural models change</h2>
+        <p><strong>Neural Collaborative Filtering (NCF)</strong> replaces or augments the factor dot product with a neural interaction function. A dot product is bilinear in the learned embeddings; a network can express richer interactions. Whether that flexibility helps is an empirical question, particularly with sparse feedback.</p>
+        <p><strong>Two-tower retrieval</strong> uses one encoder for the user or request and another for the item. Both produce compatible embeddings scored by a dot product or cosine similarity. Item vectors can be precomputed, letting the request path encode the user and use approximate nearest-neighbor (ANN) search, for example with FAISS. The useful tradeoff is that the encoders don't interact deeply for every candidate; that makes retrieval efficient but limits the pair-specific information it can capture.</p>
+        <p><strong>Sequential Transformers</strong> such as SASRec and BERT4Rec model interaction order. SASRec uses a causal sequence formulation, while BERT4Rec learns with masked items and bidirectional context during training. They can capture changing interests and dependencies that a single averaged user vector misses. Serving and evaluation still must use only the user's available past. They add data and computation requirements, not a guarantee of better recommendations.</p>
+
+        <h2>Give retrieval and ranking separate responsibilities</h2>
+        <p>For a large catalogue, a possible pipeline retrieves about 1,000 candidates from 10 million items, scores that smaller set with a richer ranker, and then applies final constraints. The exact counts are design choices. A small application might work well with a single simpler model. Google's <a href="https://research.google/pubs/deep-neural-networks-for-youtube-recommendations/" target="_blank" rel="noopener">YouTube recommendation paper</a> describes the candidate-generation and ranking separation at scale.</p>
+        <p>I'd mix candidate sources where they add coverage. The ranker might use richer user-item features and a neural network or another appropriate model. A final pass can enforce availability, diversify similar items, consider freshness, and remove already-consumed items when repeat consumption isn't useful. Sponsored placement, if part of the product, needs explicit handling rather than being confused with organic relevance.</p>
+        <p>Retrieval recall deserves its own metric. If a relevant niche film never reaches the candidate set, the ranker cannot rescue it. A more expensive ranker is only useful if the right items reach it within the latency budget.</p>
+
+        <h2>Measure both the list and the experience</h2>
+        <p>For a top-K list and a defined held-out relevant set, I'd use these offline measures:</p>
+        <ul>
+        <li><strong>Precision@K:</strong> relevant items in the top K divided by K.</li>
+        <li><strong>Recall@K:</strong> relevant items retrieved in the top K divided by all held-out relevant items for that user.</li>
+        <li><strong>Hit Rate@K:</strong> the fraction of users with at least one relevant item in their top-K list.</li>
+        <li><strong>NDCG@K:</strong> discounted relevance of the proposed order divided by the best possible order for the same evaluation setup.</li>
+        </ul>
+        <pre><code>DCG@K = Σ_(i=1 to K) gain(relevance_i) / log₂(i + 1)
+NDCG@K = DCG@K / IDCG@K</code></pre>
+        <p>Linear gain uses the relevance grade itself; another common convention is <code>2^relevance - 1</code>. I'd state which is used and how users with no relevant held-out items are treated. Temporal holdouts and realistic candidate sets matter. Ranking against a handful of easy sampled negatives can look much better than serving against the full catalogue.</p>
+        <p>Online, I'd examine click-through rate, watch or engagement time, conversion, diversity, and longer-term retention, such as return within thirty days. Clickbait can raise CTR without satisfaction, and long content can raise watch time without being the right recommendation. I'd run an A/B test around the product's actual objective and keep guardrails for the rest.</p>
+
+        <h2>Cold start, exploration, and the serving loop</h2>
+        <p>For a new user, onboarding preferences and popular or trending items provide a starting point. Relevant contextual information may help. I'd shift toward personalization as evidence accumulates; five or ten interactions might be enough in one setting and inadequate in another. For new items, metadata can produce embeddings immediately, and limited exposure can collect early feedback.</p>
+        <p>Exploration is how the system learns beyond what it already believes. An epsilon-greedy policy chooses an exploratory eligible item with probability epsilon, perhaps 0.1 in a toy setup, and otherwise uses its best current estimate. Thompson sampling draws from a posterior over reward parameters and chooses according to that sample, giving uncertain options opportunities. Both need a clear reward, safe candidate constraints, and evaluation; neither automatically eliminates filter bubbles.</p>
+        <p>Imagine showing only action films after two action views. The user chooses another because that's what's offered, and the model becomes more confident. I'd monitor genre distributions, catalogue coverage, exposure concentration, and performance for less-popular items to catch that loop.</p>
+        <p>On the serving side, user embeddings or features could be cached in Redis, with item vectors in a FAISS index. A nightly index refresh is one possible schedule, not a requirement. New catalogue arrivals and rapidly changing interests may need faster updates. I'd monitor cache age, index freshness, candidate counts, unavailable items, latency, CTR shifts, and fallback behavior. A sudden click-rate drop might be a retrieval bug rather than changed taste.</p>
+
+        <h2>How I'd approach the first version</h2>
+        <p>I'd define the desired outcome, inspect sparsity and exposure, and build popularity, item-similarity, and content baselines. At the scale that calls for it, I'd separate retrieval from ranking, measure each, and make cold-start behavior explicit. I'd then test exploration and richer models against the experience people actually have. The empty cells don't become trustworthy labels just because the model gets more sophisticated.</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/recommendation-systems-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/recommendation-systems-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">

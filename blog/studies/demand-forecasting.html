@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Demand Forecasting When the Shelf Is Empty | Shashank Chandavarkar</title>
+  <title>Demand Forecasting When the Shelf Is Empty (Demand Forecasting) | Shashank Chandavarkar</title>
   <meta name="description" content="A store that sells out hasn&#x27;t necessarily forecast well. My notes on stockouts, honest backtests, and why the cost of leftover bread belongs in the problem from the start." />
   <meta name="theme-color" content="#ffffff" />
-  <meta property="og:title" content="Demand Forecasting When the Shelf Is Empty" />
+  <meta property="og:title" content="Demand Forecasting When the Shelf Is Empty (Demand Forecasting)" />
   <meta property="og:description" content="A store that sells out hasn&#x27;t necessarily forecast well. My notes on stockouts, honest backtests, and why the cost of leftover bread belongs in the problem from the start." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shashankc10.github.io/blog/studies/demand-forecasting.html" />
@@ -34,44 +34,89 @@
     <article>
       <header class="post-header">
         <p class="eyebrow">Study note · Forecasting</p>
-        <h1>Demand Forecasting When the Shelf Is Empty</h1>
-        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · 5 min read</p>
+        <h1>Demand Forecasting When the Shelf Is Empty (Demand Forecasting)</h1>
+        <p class="post-meta">Shashank Chandavarkar · <time datetime="2026-09-29">September 29, 2026</time> · Updated <time datetime="2026-09-30">September 30, 2026</time> · 11 min read · companion PDF</p>
       </header>
 
       <div class="article-body">
-        <p class="lede">A store can sell every loaf of bread on the shelf and still have ordered too little. That is the detail I keep coming back to with demand forecasting: the sales history records what people bought, but it doesn't always tell me what they wanted.</p>
+        <p class="lede">A store can sell every loaf of bread on the shelf and still have ordered too little. That is the detail I keep coming back to with demand forecasting: sales record what people bought, but they don't always tell me what people wanted.</p>
 
-        <h2>What am I actually forecasting?</h2>
-        <p>“Predict next week's demand” sounds specific until I try to turn it into a dataset. Is that daily units per product, weekly revenue per store, or the total stock a warehouse needs? Each version changes the target, the features, and what a useful error measure looks like.</p>
-        <p>For these notes, I'm thinking about a grocery store ordering bread for the next seven days. The forecast needs to arrive before the order goes in. Being a little late with a very accurate prediction doesn't help anyone making that decision.</p>
-        <p>I'd also ask about the cost of getting it wrong. Unsold bread goes stale. Selling out means losing purchases, and possibly customers. Those costs are unlikely to be equal, so minimizing average error is only part of the job.</p>
+        <h2>Give the forecast a job</h2>
+        <p>Demand forecasting is about estimating future demand early enough to prepare for it. That might mean inventory for a retailer, food preparation for a restaurant, warehouse stock, drivers available in a particular area, or server capacity. The mathematics overlaps, but the decision and cost of error change.</p>
+        <p>Before choosing a model, I'd pin down six things: the target, its granularity, the horizon, how often predictions need updating, the cost of over- versus underprediction, and whether the product has any history. Daily units per product per store is a different problem from quarterly regional revenue. Forecasting daily and retraining daily are also separate choices.</p>
+        <p>For a concrete setup, suppose a retail chain has roughly 10,000 SKUs and needs daily unit forecasts seven days ahead. I'll use bread as the running example. The forecast must arrive before the order goes in; a very accurate answer delivered after that cutoff is no use.</p>
 
-        <h2>The shelf changes what the data can tell me</h2>
-        <p>Suppose, as a toy example, the store stocks 100 loaves and sells all 100 by noon. The recorded sales are 100. Demand might have been 110 or 180; I can't tell from the sales column. Training a model to reproduce 100 without considering availability could teach it to repeat the shortage.</p>
-        <p>That's why I'd join inventory records before getting too interested in seasonality. A zero with stock available means something different from a zero with an empty shelf. Stockout periods need an explicit treatment, whether that's a censored-demand model, a carefully justified estimate, or a flag that keeps me from interpreting them as ordinary observations. Filling them in doesn't make the uncertainty disappear.</p>
-        <p>Then I'd look at weekly patterns, promotions, price changes, and holidays. I want to know whether a spike repeats, whether it came from a discount, and whether the store was even open. A plot of sales beside availability and price would answer more for me at this stage than a model leaderboard.</p>
+        <h2>The shelf changes the target</h2>
+        <p>If a store stocks 100 loaves and sells all 100 by noon, recorded sales are 100. Demand might have been 110 or 180. Treating the observation as an ordinary demand label could teach the model to repeat the shortage. A zero with stock available is also different from a zero because the shelf was empty.</p>
+        <p>I'd bring these sources together at the same product-store-time grain:</p>
+        <ul>
+        <li><strong>Sales history:</strong> units, returns, and a consistent definition of the target.</li>
+        <li><strong>Inventory:</strong> availability and stockout periods, so constrained sales aren't mistaken for low demand.</li>
+        <li><strong>Prices and promotions:</strong> discount size, promotion flags, and past responses to price changes. Those responses are associations unless the analysis supports a causal elasticity estimate.</li>
+        <li><strong>Calendar:</strong> weekdays, holidays, store closures, and relevant payday cycles.</li>
+        <li><strong>Weather:</strong> temperature and rain where they plausibly affect the product.</li>
+        <li><strong>Longer-range context:</strong> inflation, unemployment, and web or search trends when they add information available at the forecast cutoff.</li>
+        </ul>
+        <p>Stockouts need an explicit treatment, such as a censored-demand model or a justified estimate with uncertainty. Imputing a number doesn't turn it into an observed sale. I'd also inspect missing dates, changing product identifiers, extreme values, and the target distribution. A log transform can help with right-skewed values, but converting a log-scale prediction back isn't automatically an unbiased estimate of mean demand.</p>
 
-        <h2>Only use what I could have known</h2>
-        <p>Last week's sales and recent rolling averages are natural features. The trap is building them with information that wouldn't exist when the forecast is issued. Even a rolling mean can leak the target if I forget to shift the window.</p>
-        <pre><code>At the forecast cutoff:
-  use sales recorded before the cutoff
-  use promotions already scheduled
-  use the weather forecast available then
-  predict the next seven days</code></pre>
-        <p>The seven-day horizon makes this more subtle. When I forecast next Sunday on Monday, Saturday's actual sales aren't available yet. I'd either predict each horizon directly or feed earlier predictions into later steps and account for the accumulated error. A backtest that quietly uses Saturday's actual sales is testing a different system.</p>
+        <h2>Look at the series before fitting it</h2>
+        <p>For weak stationarity, the mean and variance stay constant over time and autocovariance depends on the lag rather than the calendar date. I picture a series fluctuating around a stable level, rather than drifting upward year after year. That assumption matters for some time-series models; it isn't a prerequisite for every forecasting method.</p>
+        <p>The Augmented Dickey-Fuller test asks whether the series has a unit root under its specified regression. A small p-value, often compared with 0.05, is evidence against that null. It doesn't certify every form of stationarity, and a larger p-value isn't an automatic instruction to difference everything. I'd examine the plot, trend assumptions, seasonality, and test power too.</p>
+        <pre><code>First difference: y'_t = y_t - y_(t-1)
+Seasonal difference: y'_t = y_t - y_(t-m)
+STL: y_t = trend_t + seasonal_t + residual_t</code></pre>
+        <p>STL decomposition helps separate trend, seasonality, and residual variation. The autocorrelation function (ACF) measures relationships across lags; a peak at lag seven can suggest weekly structure in daily data. The partial autocorrelation function (PACF) controls for intervening lags. Both can guide ARIMA choices, but I'd avoid interpreting a single spike without considering the rest of the series.</p>
 
-        <h2>Give the simple forecast a fair chance</h2>
-        <p>I'd start with last week's same-day sales and a recent average. They're easy to inspect, and they tell me how much work a more complicated model is really doing.</p>
-        <p>Exponential smoothing is appealing when level, trend, and seasonality explain much of the series. ARIMA offers another way to model temporal dependence, with seasonal and external-regressor extensions when appropriate. Across many products, a shared LightGBM model is worth trying: lag features, product metadata, prices, and calendar variables can all live in one training table.</p>
-        <p>The reason I'd consider a global model is that individual products may have very little history. Sharing patterns across related products could help a new loaf find a reasonable starting forecast. It still won't tell me how customers will respond to a completely unfamiliar product. I'd want wider uncertainty there, rather than a precise-looking guess.</p>
+        <h2>Build features that exist at prediction time</h2>
+        <p>My starting calendar features would include day of week, weekend and holiday flags, day of month, week of year, month, quarter, and days before or after a holiday. Payday indicators should reflect the market, rather than assuming everyone gets paid on the first and fifteenth.</p>
+        <p>For a model that uses numerical distance, encoding Monday as zero and Sunday as six makes adjacent days look far apart. Sine and cosine preserve the weekly cycle:</p>
+        <pre><code>day_sin = sin(2 × π × day / 7)
+day_cos = cos(2 × π × day / 7)</code></pre>
+        <p>I'd compare that with categorical or one-hot encoding, particularly for trees. Cyclical encoding is useful, not a mandatory trick for every model.</p>
+        <p>Lag features let the history speak directly: <code>lag_1</code>, <code>lag_7</code>, <code>lag_14</code>, and <code>lag_28</code>. Twenty-eight days means four weeks, not necessarily the same calendar date last month. Rolling means over seven and twenty-eight days capture recent level; a seven-day standard deviation captures volatility. An exponentially weighted mean gives recent observations more weight, for example <code>m_t = 0.3y_t + 0.7m_(t-1)</code>.</p>
+        <p>I'd consider interactions such as price × promotion, product category × weekday, and region × weather. A discount might matter differently at different price points, and rain won't affect every store or category equally.</p>
+        <p>All of those historical summaries must stop at the forecast cutoff. If I forecast Sunday on Monday, Saturday's actual sales don't exist yet. Direct horizon-specific predictions and recursive forecasts are two ways to handle this; recursive forecasts feed earlier predictions into later steps. Backtesting with actual future lags would evaluate a system I cannot serve. Future holidays may be known; future weather requires the forecast available at that time.</p>
 
-        <h2>A forecast needs room for uncertainty</h2>
-        <p>A median forecast answers a different question from an upper quantile. If under-ordering is expensive, a higher quantile may be useful input to the stock decision. P90 means the model estimates a 90% chance of demand falling at or below that value; it isn't a promise that ordering that amount is always sensible. Shelf life, current inventory, and delivery lead time still matter.</p>
-        <p>For evaluation, I'd track absolute error and whether the model consistently underpredicts. Percentage errors deserve care when actual demand is zero or tiny. I'd also check interval coverage: if a supposed 90% interval misses much more often than expected, its reassuring width is misleading.</p>
-        <p>I'd evaluate this with successive historical cutoffs, forecasting the full seven days each time. That follows the <a href="https://otexts.com/fpp3/tscv.html" target="_blank" rel="noopener">rolling-origin approach described in Forecasting: Principles and Practice</a>. I want separate results for ordinary weeks, promotions, and low-volume products, because one average can hide a very expensive weakness.</p>
+        <h2>The loss function says which mistakes matter</h2>
+        <p>I keep the formulas close because similarly named metrics answer different questions. Here <code>y</code> is actual demand, <code>ŷ</code> the forecast, and the mean is across evaluated observations.</p>
+        <pre><code>MAE   = mean(|y - ŷ|)
+RMSE  = sqrt(mean((y - ŷ)²))
+MAPE  = 100 × mean(|y - ŷ| / |y|)
+sMAPE = 100 × mean(2|y - ŷ| / (|y| + |ŷ|))
 
-        <h2>What I'd want to try next</h2>
-        <p>A small experiment would be enough to get started: compare a seasonal baseline with a global tree model, simulate the ordering decision, and inspect the days where one wins and the other fails. I'd keep stockout assumptions visible throughout. A lower error score is useful, but I'd be much more convinced by fewer empty shelves without a pile of wasted bread.</p>
+Quantile loss at level τ:
+Lτ = τ × max(y - ŷ, 0)
+   + (1 - τ) × max(ŷ - y, 0)</code></pre>
+        <p>MAE treats errors linearly and is less dominated by extremes than RMSE. RMSE makes large mistakes count more heavily. MAPE makes comparisons look scale-free, but is undefined at zero demand and unstable near it. sMAPE changes the denominator; it still needs a convention when both actual and prediction are zero, and it isn't a universal fix for intermittent sales.</p>
+        <p>Quantile loss makes the asymmetry explicit. With <code>τ &gt; 0.5</code>, underprediction costs more than an equally sized overprediction. P90 estimates a value at or above demand about 90% of the time if calibrated. It may inform safety stock, but ordering still depends on lead time, current stock, shelf life, and the actual shortage and holding costs. I'd check interval coverage and bias as well as point error.</p>
+        <p>For count-valued sales, Poisson is a possible starting distribution with equal mean and variance. Negative binomial allows variance above the mean. A zero-inflated Poisson adds a separate source of zeros, which can be useful for genuine zero-demand periods. An empty shelf isn't the same mechanism as a customer deciding not to buy.</p>
+
+        <h2>What each model buys me</h2>
+        <p><strong>Moving averages and seasonal baselines.</strong> Tomorrow's forecast could be the last seven days' average, or the same weekday last week. I'd keep both as reference points. If a complex model doesn't improve on them at the relevant horizon and cost, I need a reason to retain it.</p>
+        <p><strong>Exponential smoothing and Holt-Winters.</strong> These track level, trend, and seasonality. In a simple additive form, a forecast combines the current level, trend multiplied by horizon, and the relevant seasonal component. They're fast and useful for clear recurring patterns. Ordinary Holt-Winters doesn't directly include arbitrary weather or promotion features.</p>
+        <p><strong>ARIMA and SARIMA.</strong> In <code>ARIMA(p, d, q)</code>, <code>p</code> counts autoregressive lags, <code>d</code> differences, and <code>q</code> moving-average error terms. SARIMA adds <code>(P, D, Q, m)</code> for seasonal structure, such as <code>m = 7</code> for a weekly cycle in daily observations. Local models can be interpretable and provide intervals, but fitting and maintaining thousands takes work. External predictors are possible through extensions: <a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.sarimax.SARIMAX.html" target="_blank" rel="noopener">SARIMAX supports exogenous regressors</a>.</p>
+        <p><strong>Prophet.</strong> Its decomposition combines trend, seasonality, holiday effects, and noise; Fourier terms represent seasonal patterns. It's convenient for calendar-driven series and can tolerate gaps in observation. It often means maintaining a model per series. It can also use weather or other custom predictors through <a href="https://github.com/facebook/prophet/blob/main/docs/_docs/seasonality%2C_holiday_effects%2C_and_regressors.md" target="_blank" rel="noopener">additional regressors</a>, provided their future values are available or forecast.</p>
+        <p><strong>LightGBM and XGBoost.</strong> Each product-store-date becomes a row with lag, calendar, and other features. A global model shares information across series and accepts rich external inputs. I'd inspect it with errors by segment and tools such as SHAP, remembering that attribution isn't causation. Feature construction is manual, and ordinary trees don't naturally extrapolate trends beyond their learned ranges. Quantile objectives or other uncertainty methods need to be configured deliberately.</p>
+        <p><strong>LSTM and GRU.</strong> Recurrent networks learn sequence representations. An LSTM uses gates and a memory cell to retain or discard information; a GRU has a simpler gated structure. They can reduce the need for hand-built lag relationships, but still require careful inputs, sufficient data, and harder debugging. A standard point-output network doesn't automatically give prediction intervals.</p>
+        <p><strong>Temporal Fusion Transformer (TFT).</strong> This separates static inputs such as store location, known future inputs such as holidays, and past-only observations such as sales. Attention helps it use relevant temporal information, and quantile outputs can supply P10, P50, and P90 forecasts. That flexibility comes with data and implementation cost. Attention weights deserve interpretation cautiously, and I'd test its accuracy rather than call it universally best.</p>
+        <p><strong>DeepAR.</strong> This autoregressive neural approach learns across related time series and predicts a distribution rather than just one number. Metadata and shared patterns can help sparse series, but a completely new product still needs a supported cold-start strategy. I'd check the chosen implementation's requirements instead of assuming it can forecast any unseen item.</p>
+        <p>My comparison comes down to four practical questions: how many series I can maintain, whether I need external features, how uncertainty is produced, and how much data is available. ARIMA and Prophet can be good local models with intervals. Global trees are attractive for many related products. LSTM, TFT, and DeepAR can share patterns too, with more training and serving complexity. None wins just by appearing later on the list.</p>
+
+        <h2>Replay the decisions honestly</h2>
+        <p>A random split of January through December can train on December and test on January. For the future-forecasting use case, I'd use walk-forward validation instead: train through September and forecast October, then through October and forecast November, then through November and forecast December. Every feature transformation must respect the same cutoffs.</p>
+        <p>The test should match the actual horizon, including all seven days if that's the ordering window. <a href="https://otexts.com/fpp3/tscv.html" target="_blank" rel="noopener">Rolling-origin cross-validation</a> makes that distinction explicit. I'd break errors down by horizon, promotion, store, and sales volume, then simulate the replenishment decision where possible. Fewer stockouts with tolerable waste is a more convincing result than a small average-error improvement alone.</p>
+
+        <h2>Keep the daily pipeline understandable</h2>
+        <p>A batch pipeline could ingest point-of-sale data, validate it, compute lag and calendar features, score each product-store combination, and write forecasts to a warehouse such as BigQuery or a serving store such as Redis. The replenishment system then reads them. I'd record the forecast cutoff, feature version, and model version so an odd order can be traced back.</p>
+        <p>Training-serving skew occurs when the historical and live feature definitions differ. A feature store such as Feast or Tecton can help share definitions and point-in-time data, but it doesn't automatically fix inconsistent timestamps or joins. I'd test the actual feature values in both paths.</p>
+        <p>Weekly or monthly retraining is a simple starting schedule. Triggered retraining may help when rolling errors deteriorate relative to the baseline. I'd distinguish data drift from concept drift: changed input distributions are not the same as changed relationships between inputs and demand. KL divergence or PSI can summarize distribution shifts, with care over bins and small counts. Forecast distribution changes, realized error, and interval coverage need separate monitoring. MAPE is only appropriate where its denominator behaves.</p>
+        <p>A forecast ten times last week's value deserves inspection, not automatic rejection: a planned promotion could explain it. For new SKUs, I'd use category, price tier, and supplier metadata in a global model, or borrow patterns from items nearby in a metadata embedding using cosine similarity. I'd keep cold-start results separate and make their uncertainty visible.</p>
+
+        <h2>How I'd talk through the whole problem</h2>
+        <p>I'd establish the ordering decision and error costs, join sales to availability, inspect seasonal structure, and construct only cutoff-safe features. Then I'd compare simple baselines with a global tree model before trying heavier sequence models. I'd evaluate the real horizon with walk-forward tests and connect the errors to waste and shortages. Finally, I'd explain the daily data path, cold-start fallback, retraining policy, and monitoring. That gives the model a specific job and makes it possible to tell whether it is doing it.</p>
+
+        <h2>Companion notes</h2>
+        <p>I’ve included the original study guide as a PDF alongside these notes. <a href="../../assets/studies/demand-forecasting-study-notes.pdf" target="_blank" rel="noopener">Open the PDF ↗</a> or <a href="../../assets/studies/demand-forecasting-study-notes.pdf" download>download a copy</a>.</p>
       </div>
 
       <nav class="article-next" aria-label="More notes">
